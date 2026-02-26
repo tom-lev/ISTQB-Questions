@@ -497,14 +497,27 @@
   }
 
   .explanation strong {
-    color: var(--text);
+    color: var(--accent);
     font-family: 'Space Mono', monospace;
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     display: block;
-    margin-bottom: 0.4rem;
-    color: var(--accent);
+    margin-bottom: 0.6rem;
+  }
+
+  .explanation .exp-line {
+    display: block;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid rgba(108,99,255,0.08);
+  }
+
+  .explanation .exp-line:last-child {
+    border-bottom: none;
+  }
+
+  .explanation .exp-correct {
+    color: var(--success);
   }
 
   /* Footer row */
@@ -1062,7 +1075,8 @@ function selectOption(idx) {
   // Show explanation
   if (q.exp) {
     const exp = document.getElementById('explanation');
-    exp.innerHTML = `<strong>Explanation</strong>${q.exp}`;
+    const formatted = formatExplanation(q.exp);
+    exp.innerHTML = `<strong>Explanation</strong>${formatted}`;
     exp.classList.remove('hidden');
   }
 
@@ -1165,7 +1179,7 @@ function buildReview() {
     div.innerHTML = `
       <div class="review-q"><strong style="color:var(--muted);font-size:0.75rem;font-family:'Space Mono',monospace">Q${i+1}</strong> &nbsp; ${a.q.q}</div>
       <div class="review-answers">${answerLine}</div>
-      ${a.q.exp && !a.correct ? `<div style="margin-top:0.6rem;font-size:0.8rem;color:var(--muted);line-height:1.55">${a.q.exp}</div>` : ''}
+      ${a.q.exp && !a.correct ? `<div style="margin-top:0.6rem;font-size:0.8rem;color:var(--muted);line-height:1.55">${formatExplanation(a.q.exp)}</div>` : ''}
     `;
     list.appendChild(div);
   });
@@ -1180,6 +1194,19 @@ function retryWrong() {
 // ============================================================
 // HELPERS
 // ============================================================
+function formatExplanation(text) {
+  // Split on answer labels: a) b) c) d) e) — even mid-sentence
+  const parts = text.split(/(?=\b[a-e]\)\s)/i).filter(p => p.trim());
+  if (parts.length <= 1) {
+    // No labeled answers, just show as-is
+    return `<span class="exp-line">${text}</span>`;
+  }
+  return parts.map(part => {
+    const isCorrect = /is correct/i.test(part);
+    return `<span class="exp-line ${isCorrect ? 'exp-correct' : ''}">${part.trim()}</span>`;
+  }).join('');
+}
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
