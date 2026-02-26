@@ -740,6 +740,14 @@
       <div class="stat-num" id="stat-best">—</div>
       <div class="stat-label">Best Score</div>
     </div>
+    <div class="stat-item">
+      <div class="stat-num" id="stat-answered">0</div>
+      <div class="stat-label">Answered</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="stat-unique">0</div>
+      <div class="stat-label">Unique Qs</div>
+    </div>
   </div>
 
   <div class="mode-grid">
@@ -879,8 +887,10 @@
 <script>
 let ALL_Q = [];
 let SESSION = { questions: [], idx: 0, correct: 0, wrong: 0, skipped: 0, answers: [], mode: '' };
-let WRONG_IDS = JSON.parse(localStorage.getItem('istqb_wrong') || '[]');
-let BEST = JSON.parse(localStorage.getItem('istqb_best') || 'null');
+let WRONG_IDS    = JSON.parse(localStorage.getItem('istqb_wrong')    || '[]');
+let BEST         = JSON.parse(localStorage.getItem('istqb_best')     || 'null');
+let ANSWERED_IDS = JSON.parse(localStorage.getItem('istqb_answered') || '[]'); // all attempts (with repeats count)
+let UNIQUE_IDS   = JSON.parse(localStorage.getItem('istqb_unique')   || '[]'); // unique question indices tried
 
 // ── Firestore bridge (set by Firebase module once ready) ──
 window._fbSaveUserData = null;
@@ -888,10 +898,17 @@ window._currentUser    = null;
 
 // Called whenever WRONG_IDS or BEST change
 async function persistData() {
-  localStorage.setItem('istqb_wrong', JSON.stringify(WRONG_IDS));
-  localStorage.setItem('istqb_best',  JSON.stringify(BEST));
+  localStorage.setItem('istqb_wrong',    JSON.stringify(WRONG_IDS));
+  localStorage.setItem('istqb_best',     JSON.stringify(BEST));
+  localStorage.setItem('istqb_answered', JSON.stringify(ANSWERED_IDS));
+  localStorage.setItem('istqb_unique',   JSON.stringify(UNIQUE_IDS));
   if (window._fbSaveUserData && window._currentUser) {
-    await window._fbSaveUserData({ wrongIds: WRONG_IDS, best: BEST });
+    await window._fbSaveUserData({
+      wrongIds:    WRONG_IDS,
+      best:        BEST,
+      answeredIds: ANSWERED_IDS,
+      uniqueIds:   UNIQUE_IDS
+    });
   }
 }
 
@@ -909,6 +926,15 @@ async function loadCloudData(data) {
     const el = document.getElementById('stat-best');
     if (el) el.textContent = BEST + '%';
   }
+  if (Array.isArray(data.answeredIds)) {
+    ANSWERED_IDS = [...ANSWERED_IDS, ...data.answeredIds];
+    localStorage.setItem('istqb_answered', JSON.stringify(ANSWERED_IDS));
+  }
+  if (Array.isArray(data.uniqueIds)) {
+    UNIQUE_IDS = [...new Set([...UNIQUE_IDS, ...data.uniqueIds])];
+    localStorage.setItem('istqb_unique', JSON.stringify(UNIQUE_IDS));
+  }
+  updateAnsweredStats();
 }
 
 async function loadQuestions() {
@@ -925,6 +951,7 @@ function init() {
   document.getElementById('stat-total').textContent = ALL_Q.length;
   document.getElementById('count-random').textContent = ALL_Q.length + ' Questions';
   updateWrongCount();
+  updateAnsweredStats();
   document.getElementById('stat-best').textContent = BEST ? BEST + '%' : '—';
   showScreen('home');
 }
@@ -1013,6 +1040,13 @@ function selectOption(idx) {
   const q = SESSION.questions[SESSION.idx];
   opts.forEach(o => o.classList.add('disabled'));
 
+  // Track answered stats
+  const gIdx = ALL_Q.indexOf(q);
+  if (gIdx >= 0) {
+    ANSWERED_IDS.push(gIdx);
+    if (!UNIQUE_IDS.includes(gIdx)) UNIQUE_IDS.push(gIdx);
+  }
+
   if (idx === q.ans) {
     opts[idx].classList.add('correct');
     SESSION.correct++;
@@ -1025,9 +1059,11 @@ function selectOption(idx) {
     const globalIdx = ALL_Q.indexOf(q);
     if (globalIdx >= 0 && !WRONG_IDS.includes(globalIdx)) {
       WRONG_IDS.push(globalIdx);
-      persistData();
     }
   }
+
+  persistData();
+  updateAnsweredStats();
 
   if (q.exp) {
     const exp = document.getElementById('explanation');
@@ -1194,6 +1230,13 @@ function shuffle(arr) {
   return a;
 }
 
+function updateAnsweredStats() {
+  const answeredEl = document.getElementById('stat-answered');
+  const uniqueEl   = document.getElementById('stat-unique');
+  if (answeredEl) answeredEl.textContent = ANSWERED_IDS.length;
+  if (uniqueEl)   uniqueEl.textContent   = UNIQUE_IDS.length;
+}
+
 function updateWrongCount() {
   document.getElementById('count-wrong').textContent = WRONG_IDS.length + ' mistakes';
 }
@@ -1225,13 +1268,15 @@ loadQuestions();
   const provider = new GoogleAuthProvider();
 
   // ── Save WRONG_IDS + BEST to Firestore ──
-  window._fbSaveUserData = async function({ wrongIds, best }) {
+  window._fbSaveUserData = async function({ wrongIds, best, answeredIds, uniqueIds }) {
     const uid = window._currentUser?.uid;
     if (!uid) return;
     await setDoc(doc(db, "users", uid), {
       wrongIds,
-      best: best ?? null,
-      updatedAt: serverTimestamp()
+      best:        best        ?? null,
+      answeredIds: answeredIds ?? [],
+      uniqueIds:   uniqueIds   ?? [],
+      updatedAt:   serverTimestamp()
     }, { merge: true });
   };
 
