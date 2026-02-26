@@ -695,6 +695,56 @@
     h1.hero-title { font-size: 2.5rem; }
   }
 
+  /* ========== TOP LOGO BAR ========== */
+  .top-logo-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    z-index: 99;
+    pointer-events: none;
+  }
+
+  .top-logo-bar.hidden { display: none; }
+
+  .logo-home-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(17,17,24,0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.4rem 0.9rem;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    pointer-events: all;
+    text-decoration: none;
+  }
+
+  .logo-home-btn .logo-mark {
+    font-size: 1rem;
+    color: var(--accent);
+  }
+
+  .logo-home-btn:hover {
+    border-color: rgba(108,99,255,0.4);
+    color: var(--accent);
+  }
+
+  /* Add top padding to pages that have the logo bar */
+  .has-top-bar {
+    padding-top: 64px;
+  }
+
   /* ========== SIDEBAR ========== */
   .sidebar {
     position: fixed;
@@ -982,7 +1032,14 @@
   }
 </style>
 </head>
-<body>
+<body class="sidebar-collapsed">
+
+<!-- Top Logo Bar (shown on all pages except loading/quiz) -->
+<div class="top-logo-bar hidden" id="top-logo-bar">
+  <button class="logo-home-btn" onclick="navTo('home')">
+    <span class="logo-mark">✦</span> Quiz Trainer
+  </button>
+</div>
 
 <!-- Loading -->
 <div id="loading" class="screen">
@@ -1159,7 +1216,7 @@
 </div>
 
 <!-- Stats Page -->
-<div id="stats-page" class="screen hidden">
+<div id="stats-page" class="screen hidden has-top-bar">
   <div class="page-title">📊 סטטיסטיקות</div>
   <div class="page-sub">כל הנתונים שלך במקום אחד</div>
 
@@ -1223,7 +1280,7 @@
 </div>
 
 <!-- About Page -->
-<div id="about-page" class="screen hidden">
+<div id="about-page" class="screen hidden has-top-bar">
   <div class="page-title" style="direction:rtl">ℹ️ אודות</div>
   <div class="page-sub" style="direction:rtl">מידע על האפליקציה</div>
 
@@ -1251,7 +1308,7 @@
 </div>
 
 <!-- Sidebar Nav -->
-<nav class="sidebar" id="global-nav">
+<nav class="sidebar collapsed" id="global-nav">
   <div class="sidebar-logo">✦</div>
   <button class="nav-btn active" id="nav-home" onclick="navTo('home')">
     <span class="nav-icon">🏠</span>בית
@@ -1352,12 +1409,16 @@ function showScreen(id) {
   // Show nav only on main pages
   const nav = document.getElementById('global-nav');
   const toggleBtn = document.getElementById('sidebar-toggle-btn');
+  const logoBar = document.getElementById('top-logo-bar');
+  const noNav = ['loading','config','quiz','results'];
+  const hide = noNav.includes(id);
   if (nav) {
-    const noNav = ['loading','config','quiz','results'];
-    const hide = noNav.includes(id);
     nav.classList.toggle('hidden-nav', hide);
     if (toggleBtn) toggleBtn.style.display = hide ? 'none' : 'flex';
   }
+  // Show logo bar only on secondary pages (not home, quiz, loading, config, results)
+  const showLogo = ['stats-page','about-page'].includes(id);
+  if (logoBar) logoBar.classList.toggle('hidden', !showLogo);
 }
 
 function toggleSidebar() {
