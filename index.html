@@ -695,6 +695,91 @@
     h1.hero-title { font-size: 2.5rem; }
   }
 
+  /* ========== GUEST BANNER ========== */
+  #login-wall {
+    position: fixed;
+    bottom: 1.2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 200;
+    width: calc(100% - 2rem);
+    max-width: 480px;
+    animation: slideUp 0.4s ease;
+  }
+
+  #login-wall.hidden { display: none; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  .login-card {
+    background: var(--card);
+    border: 1px solid rgba(108,99,255,0.3);
+    border-radius: 16px;
+    padding: 1rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .login-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.4;
+    flex: 1;
+    min-width: 160px;
+  }
+
+  .login-sub strong {
+    color: var(--text);
+    display: block;
+    margin-bottom: 0.15rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
+  }
+
+  .btn-google-big {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1.2rem;
+    background: white;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .btn-google-big:hover {
+    background: #f5f5f5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .banner-close {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .banner-close:hover { color: var(--text); }
+
   /* ========== TOP LOGO BAR ========== */
   .top-logo-bar {
     position: fixed;
@@ -1034,6 +1119,26 @@
 </head>
 <body class="sidebar-collapsed">
 
+<!-- Guest Banner (shown when not logged in) -->
+<div id="login-wall" class="hidden">
+  <div class="login-card">
+    <div class="login-sub">
+      <strong>⚠️ מצב אורח</strong>
+      ההתקדמות לא נשמרת — התחבר כדי לשמור בין מכשירים
+    </div>
+    <button class="btn-google-big" onclick="loginWithGoogle()">
+      <svg width="16" height="16" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      התחבר
+    </button>
+    <button class="banner-close" onclick="document.getElementById('login-wall').classList.add('hidden')" title="סגור">✕</button>
+  </div>
+</div>
+
 <!-- Top Logo Bar (shown on all pages except loading/quiz) -->
 <div class="top-logo-bar hidden" id="top-logo-bar">
   <button class="logo-home-btn" onclick="navTo('home')">
@@ -1330,54 +1435,43 @@
 <script>
 let ALL_Q = [];
 let SESSION = { questions: [], idx: 0, correct: 0, wrong: 0, skipped: 0, answers: [], mode: '' };
-let WRONG_IDS    = JSON.parse(localStorage.getItem('istqb_wrong')    || '[]');
-let BEST         = JSON.parse(localStorage.getItem('istqb_best')     || 'null');
-let ANSWERED_IDS = JSON.parse(localStorage.getItem('istqb_answered') || '[]'); // all attempts (with repeats count)
-let UNIQUE_IDS   = JSON.parse(localStorage.getItem('istqb_unique')   || '[]'); // unique question indices tried
-let QUIZ_HISTORY = JSON.parse(localStorage.getItem('istqb_history')  || '[]'); // local quiz history
+
+// All data lives in Firestore only — no localStorage
+let WRONG_IDS    = [];
+let BEST         = null;
+let ANSWERED_IDS = [];
+let UNIQUE_IDS   = [];
+let QUIZ_HISTORY = [];
 
 // ── Firestore bridge (set by Firebase module once ready) ──
-window._fbSaveUserData = null;
-window._currentUser    = null;
+window._fbSaveUserData  = null;
+window._fbClearUserData = null;
+window._currentUser     = null;
 
 // Called whenever WRONG_IDS or BEST change
 async function persistData() {
-  localStorage.setItem('istqb_wrong',    JSON.stringify(WRONG_IDS));
-  localStorage.setItem('istqb_best',     JSON.stringify(BEST));
-  localStorage.setItem('istqb_answered', JSON.stringify(ANSWERED_IDS));
-  localStorage.setItem('istqb_unique',   JSON.stringify(UNIQUE_IDS));
+  // Firestore only — no localStorage
   if (window._fbSaveUserData && window._currentUser) {
-    await window._fbSaveUserData({
+    window._fbSaveUserData({
       wrongIds:    WRONG_IDS,
       best:        BEST,
       answeredIds: ANSWERED_IDS,
       uniqueIds:   UNIQUE_IDS
-    });
+    }).catch(console.error);
   }
 }
 
-// Called after login — loads cloud data and merges with local
+// Called after login — load cloud data directly into memory
 async function loadCloudData(data) {
   if (!data) return;
-  if (Array.isArray(data.wrongIds)) {
-    WRONG_IDS = [...new Set([...WRONG_IDS, ...data.wrongIds])];
-    localStorage.setItem('istqb_wrong', JSON.stringify(WRONG_IDS));
-    updateWrongCount();
-  }
-  if (data.best && (!BEST || data.best > BEST)) {
-    BEST = data.best;
-    localStorage.setItem('istqb_best', JSON.stringify(BEST));
-    const el = document.getElementById('stat-best');
-    if (el) el.textContent = BEST + '%';
-  }
-  if (Array.isArray(data.answeredIds)) {
-    ANSWERED_IDS = [...ANSWERED_IDS, ...data.answeredIds];
-    localStorage.setItem('istqb_answered', JSON.stringify(ANSWERED_IDS));
-  }
-  if (Array.isArray(data.uniqueIds)) {
-    UNIQUE_IDS = [...new Set([...UNIQUE_IDS, ...data.uniqueIds])];
-    localStorage.setItem('istqb_unique', JSON.stringify(UNIQUE_IDS));
-  }
+  WRONG_IDS    = Array.isArray(data.wrongIds)    ? data.wrongIds    : [];
+  BEST         = data.best                        ? data.best        : null;
+  ANSWERED_IDS = Array.isArray(data.answeredIds) ? data.answeredIds : [];
+  UNIQUE_IDS   = Array.isArray(data.uniqueIds)   ? data.uniqueIds   : [];
+
+  const bestEl = document.getElementById('stat-best');
+  if (bestEl) bestEl.textContent = BEST ? BEST + '%' : '—';
+  updateWrongCount();
   updateAnsweredStats();
 }
 
@@ -1385,7 +1479,9 @@ async function loadQuestions() {
   try {
     const resp = await fetch('questions.json');
     ALL_Q = await resp.json();
-    init();
+    // Don't call init here — wait for Firebase auth state
+    window._questionsReady = true;
+    if (window._authReady) init();
   } catch(e) {
     document.getElementById('loading').innerHTML = '<span style="color:#ff6584">⚠ Could not load questions.json</span>';
   }
@@ -1399,6 +1495,9 @@ function init() {
   document.getElementById('stat-best').textContent = BEST ? BEST + '%' : '—';
   showScreen('home');
 }
+
+window._questionsReady = false;
+window._authReady      = false;
 
 function showScreen(id) {
   ['loading','home','config','quiz','results','stats-page','about-page'].forEach(s => {
@@ -1419,6 +1518,12 @@ function showScreen(id) {
   // Show logo bar only on secondary pages (not home, quiz, loading, config, results)
   const showLogo = ['stats-page','about-page'].includes(id);
   if (logoBar) logoBar.classList.toggle('hidden', !showLogo);
+
+  // Show guest banner only on home, when not logged in
+  const guestBanner = document.getElementById('login-wall');
+  if (guestBanner && !window._currentUser) {
+    guestBanner.classList.toggle('hidden', id !== 'home');
+  }
 }
 
 function toggleSidebar() {
@@ -1491,23 +1596,23 @@ function updateStatsPage() {
   }
 }
 
-function clearAllStats() {
+async function clearAllStats() {
   if (!confirm('האם אתה בטוח? פעולה זו תמחק את כל הסטטיסטיקות שלך!')) return;
   WRONG_IDS    = [];
   BEST         = null;
   ANSWERED_IDS = [];
   UNIQUE_IDS   = [];
   QUIZ_HISTORY = [];
-  localStorage.removeItem('istqb_wrong');
-  localStorage.removeItem('istqb_best');
-  localStorage.removeItem('istqb_answered');
-  localStorage.removeItem('istqb_unique');
-  localStorage.removeItem('istqb_history');
   updateWrongCount();
   updateAnsweredStats();
   updateStatsPage();
-  document.getElementById('stat-best').textContent = '—';
-  persistData();
+  const bestEl = document.getElementById('stat-best');
+  if (bestEl) bestEl.textContent = '—';
+  // Wipe from Firestore
+  await persistData();
+  if (window._fbClearHistory && window._currentUser) {
+    window._fbClearHistory().catch(console.error);
+  }
 }
 
 function startMode(mode) {
@@ -1686,7 +1791,6 @@ function showResults() {
     passed: pass
   };
   QUIZ_HISTORY.push(historyEntry);
-  localStorage.setItem('istqb_history', JSON.stringify(QUIZ_HISTORY));
   if (window._fbSaveQuizHistory && window._currentUser) {
     window._fbSaveQuizHistory(historyEntry).catch(console.error);
   }
@@ -1791,13 +1895,13 @@ function updateWrongCount() {
   document.getElementById('count-wrong').textContent = WRONG_IDS.length + ' mistakes';
 }
 
-loadQuestions();
+loadQuestions(); // loads questions.json; init() fires only after auth resolves
 </script>
 
 <!-- Firebase Auth + Firestore sync -->
 <script type="module">
   import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc, collection, addDoc, serverTimestamp }
+  import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, addDoc, getDocs, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -1830,6 +1934,26 @@ loadQuestions();
     }, { merge: true });
   };
 
+  // ── Clear all stats from Firestore (overwrite + delete history sub-collection) ──
+  window._fbClearUserData = async function() {
+    const uid = window._currentUser?.uid;
+    if (!uid) return;
+    // Overwrite user doc with empty stats (no merge — replaces completely)
+    await setDoc(doc(db, "users", uid), {
+      name:        window._currentUser.displayName,
+      email:       window._currentUser.email,
+      wrongIds:    [],
+      best:        null,
+      answeredIds: [],
+      uniqueIds:   [],
+      updatedAt:   serverTimestamp()
+    });
+    // Delete all quizHistory documents
+    const histSnap = await getDocs(collection(db, "users", uid, "quizHistory"));
+    const deletes = histSnap.docs.map(d => deleteDoc(d.ref));
+    await Promise.all(deletes);
+  };
+
   // ── Save a quiz result to history sub-collection ──
   window._fbSaveQuizHistory = async function(entry) {
     const uid = window._currentUser?.uid;
@@ -1856,36 +1980,74 @@ loadQuestions();
     catch (e) { console.error(e); }
   };
 
+  // Fetch quiz history from Firestore sub-collection
+  async function fetchQuizHistory(uid) {
+    try {
+      const { getDocs, query, orderBy, limit } =
+        await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+      const q = query(collection(db, "users", uid, "quizHistory"), orderBy("timestamp","desc"), limit(50));
+      const snap = await getDocs(q);
+      QUIZ_HISTORY = snap.docs.map(d => ({ ...d.data(), date: d.data().date || new Date().toISOString() })).reverse();
+    } catch(e) { console.warn("Could not load quiz history", e); }
+  }
+
+  window._fbClearHistory = async function() {
+    const uid = window._currentUser?.uid;
+    if (!uid) return;
+    await setDoc(doc(db, "users", uid), {
+      wrongIds: [], best: null, answeredIds: [], uniqueIds: [], updatedAt: serverTimestamp()
+    }, { merge: true });
+    QUIZ_HISTORY = [];
+  };
+
   onAuthStateChanged(auth, async (user) => {
+    const loginWall   = document.getElementById('login-wall');
     const userInfoDiv = document.getElementById('user-info');
     const btnLogin    = document.getElementById('btn-login');
     const btnLogout   = document.getElementById('btn-logout');
 
     if (user) {
       window._currentUser = user;
+      window._authReady = true;
 
-      // Update UI
+      // Hide login wall, show app
+      if (loginWall) loginWall.classList.add('hidden');
+
+      // Update auth UI
       if (userInfoDiv) userInfoDiv.innerText = "שלום, " + user.displayName;
       if (btnLogin)  btnLogin.classList.add('hidden');
       if (btnLogout) btnLogout.classList.remove('hidden');
 
-      // Save profile
+      // Save/update profile
       await setDoc(doc(db, "users", user.uid), {
         name: user.displayName,
         email: user.email,
         lastLogin: serverTimestamp()
       }, { merge: true });
 
-      // Load & merge cloud data
+      // Load data from Firestore
       const snap = await getDoc(doc(db, "users", user.uid));
-      if (snap.exists()) {
-        await window.loadCloudData(snap.data());
-      }
+      if (snap.exists()) await window.loadCloudData(snap.data());
+      await fetchQuizHistory(user.uid);
+
+      // Init app now that we have both auth + data
+      if (window._questionsReady) window.init();
+      else window._authReady = true;
+
     } else {
       window._currentUser = null;
-      if (userInfoDiv) userInfoDiv.innerText = "אתה לא מחובר";
+      window._authReady = true;
+
+      // Guest mode: hide login wall, allow play without saving
+      if (loginWall) loginWall.classList.add('hidden');
+      WRONG_IDS = []; BEST = null; ANSWERED_IDS = []; UNIQUE_IDS = []; QUIZ_HISTORY = [];
+
+      if (userInfoDiv) userInfoDiv.innerText = "אורח";
       if (btnLogin)  btnLogin.classList.remove('hidden');
       if (btnLogout) btnLogout.classList.add('hidden');
+
+      // Init app if questions are ready
+      if (window._questionsReady) window.init();
     }
   });
 </script>
