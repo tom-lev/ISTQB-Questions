@@ -695,42 +695,100 @@
     h1.hero-title { font-size: 2.5rem; }
   }
 
-  /* ========== NAV BAR ========== */
-  .nav-bar {
+  /* ========== SIDEBAR ========== */
+  .sidebar {
     position: fixed;
-    bottom: 1.5rem;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 0;
+    right: 0;
+    width: 72px;
+    height: 100vh;
+    background: rgba(17,17,24,0.97);
+    backdrop-filter: blur(16px);
+    border-left: 1px solid var(--border);
     display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.2rem 0;
     gap: 0.4rem;
-    background: rgba(22,22,31,0.9);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 0.4rem;
     z-index: 100;
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* Collapsed: slide off-screen to the right */
+  .sidebar.collapsed {
+    transform: translateX(100%);
+  }
+
+  /* Toggle button — always visible */
+  .sidebar-toggle {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 101;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(17,17,24,0.95);
+    backdrop-filter: blur(8px);
+    color: var(--muted);
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .sidebar-toggle:hover { color: var(--accent); border-color: rgba(108,99,255,0.4); }
+
+  /* When sidebar is open, move toggle button inside it */
+  .sidebar:not(.collapsed) ~ .sidebar-toggle,
+  body.sidebar-open .sidebar-toggle {
+    right: 80px;
+  }
+
+  .sidebar-logo {
+    font-size: 1.3rem;
+    margin-bottom: 0.8rem;
+    opacity: 0.5;
   }
 
   .nav-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.15rem;
-    padding: 0.5rem 1rem;
-    border-radius: 100px;
+    gap: 0.25rem;
+    width: 52px;
+    padding: 0.65rem 0;
+    border-radius: 12px;
     border: none;
     background: transparent;
     color: var(--muted);
     font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
+    font-size: 0.55rem;
     cursor: pointer;
     transition: all 0.2s;
     white-space: nowrap;
   }
 
-  .nav-btn .nav-icon { font-size: 1.1rem; }
+  .nav-btn .nav-icon { font-size: 1.2rem; line-height: 1; }
   .nav-btn:hover { color: var(--text); background: rgba(108,99,255,0.1); }
   .nav-btn.active { color: var(--accent); background: rgba(108,99,255,0.15); }
+
+  /* Body padding when sidebar open */
+  body { padding-right: 72px; transition: padding-right 0.3s cubic-bezier(0.4,0,0.2,1); }
+  body.sidebar-collapsed { padding-right: 0; }
+
+  /* Hide sidebar during quiz/config/results */
+  .sidebar.hidden-nav { display: none; }
+  .sidebar.hidden-nav ~ .sidebar-toggle { display: none; }
+
+  @media (max-width: 520px) {
+    .sidebar { width: 64px; }
+    body { padding-right: 64px; }
+    .nav-btn { width: 46px; font-size: 0.5rem; }
+  }
 
   /* ========== STATS PAGE ========== */
   #stats-page {
@@ -1178,29 +1236,6 @@
   </div>
 
   <div class="about-section">
-    <h3>📋 על הבחינה</h3>
-    <ul>
-      <li>40 שאלות רב-ברירה</li>
-      <li>ציון מעבר: 65% (26 מתוך 40)</li>
-      <li>משך הבחינה: 60 דקות</li>
-      <li>הבחינה ניתנת בשפות רבות ברחבי העולם</li>
-      <li>תוקף ההסמכה: ללא הגבלת זמן</li>
-    </ul>
-  </div>
-
-  <div class="about-section">
-    <h3>📚 נושאי הלימוד</h3>
-    <ul>
-      <li>פרק 1 — יסודות בדיקות תוכנה</li>
-      <li>פרק 2 — בדיקות לאורך מחזור חיי הפיתוח</li>
-      <li>פרק 3 — בדיקות סטטיות</li>
-      <li>פרק 4 — טכניקות בדיקה</li>
-      <li>פרק 5 — ניהול פעילויות בדיקה</li>
-      <li>פרק 6 — כלים לתמיכה בבדיקות</li>
-    </ul>
-  </div>
-
-  <div class="about-section">
     <h3>🚀 על האפליקציה</h3>
     <p>
       אפליקציה זו נבנתה כדי לעזור לך להתכונן לבחינת ISTQB CTFL. היא מכילה שאלות מ-4 מקורות שונים
@@ -1213,21 +1248,11 @@
       <span class="about-tag">General</span>
     </div>
   </div>
-
-  <div class="about-section">
-    <h3>💡 טיפים ללמידה</h3>
-    <ul>
-      <li>תרגל יומית — עדיף 20 שאלות ביום מ-200 בפעם</li>
-      <li>קרא את ההסברים לשאלות שהחמצת</li>
-      <li>השתמש במצב "Review Mistakes" לחזרה על שגיאות</li>
-      <li>נסה סימולציית בחינה מלאה לפחות פעמיים לפני הבחינה</li>
-      <li>ציון של 75%+ בסימולציות הוא סימן טוב למוכנות</li>
-    </ul>
-  </div>
 </div>
 
-<!-- Global Nav Bar -->
-<nav class="nav-bar" id="global-nav">
+<!-- Sidebar Nav -->
+<nav class="sidebar" id="global-nav">
+  <div class="sidebar-logo">✦</div>
   <button class="nav-btn active" id="nav-home" onclick="navTo('home')">
     <span class="nav-icon">🏠</span>בית
   </button>
@@ -1238,6 +1263,11 @@
     <span class="nav-icon">ℹ️</span>אודות
   </button>
 </nav>
+
+<!-- Sidebar Toggle Button -->
+<button class="sidebar-toggle" id="sidebar-toggle-btn" onclick="toggleSidebar()" title="תפריט">
+  ☰
+</button>
 
 <!-- Quiz Logic -->
 <script>
@@ -1321,10 +1351,22 @@ function showScreen(id) {
   document.getElementById(id).classList.remove('hidden');
   // Show nav only on main pages
   const nav = document.getElementById('global-nav');
+  const toggleBtn = document.getElementById('sidebar-toggle-btn');
   if (nav) {
     const noNav = ['loading','config','quiz','results'];
-    nav.style.display = noNav.includes(id) ? 'none' : 'flex';
+    const hide = noNav.includes(id);
+    nav.classList.toggle('hidden-nav', hide);
+    if (toggleBtn) toggleBtn.style.display = hide ? 'none' : 'flex';
   }
+}
+
+function toggleSidebar() {
+  const nav = document.getElementById('global-nav');
+  const btn = document.getElementById('sidebar-toggle-btn');
+  const isCollapsed = nav.classList.toggle('collapsed');
+  document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+  if (btn) btn.textContent = isCollapsed ? '☰' : '✕';
+  if (btn) btn.style.right = isCollapsed ? '1rem' : '80px';
 }
 
 function navTo(page) {
