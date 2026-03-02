@@ -687,6 +687,63 @@
 
   select option { background: #1a1a26; }
 
+  /* ========== LANGUAGE TOGGLE ========== */
+  .lang-toggle {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .lang-btn {
+    flex: 1;
+    padding: 0.55rem 1.4rem;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+
+  .lang-btn.active {
+    background: var(--accent);
+    color: white;
+  }
+
+  .lang-btn:hover:not(.active) { color: var(--text); }
+
+  /* RTL overrides for Hebrew mode */
+  body.lang-he .q-card,
+  body.lang-he .q-text,
+  body.lang-he .opt-text,
+  body.lang-he .explanation,
+  body.lang-he .config-box,
+  body.lang-he .review-q,
+  body.lang-he .review-answers {
+    direction: rtl;
+    text-align: right;
+  }
+
+  body.lang-he .option {
+    flex-direction: row-reverse;
+  }
+
+  body.lang-he .q-meta {
+    flex-direction: row-reverse;
+  }
+
+  body.lang-he .q-footer {
+    flex-direction: row-reverse;
+  }
+
+  body.lang-he .quiz-header {
+    flex-direction: row-reverse;
+  }
+
   #review-section { width: 100%; max-width: 780px; }
 
   @media (max-width: 520px) {
@@ -1160,6 +1217,11 @@
     <p class="hero-sub">Foundation Level Certification Practice</p>
   </div>
 
+  <div class="lang-toggle">
+    <button class="lang-btn active" id="lang-en-btn" onclick="setLang('en')">🇺🇸 English</button>
+    <button class="lang-btn" id="lang-he-btn" onclick="setLang('he')">🇮🇱 עברית</button>
+  </div>
+
   <div class="auth-strip">
     <div id="user-info" style="font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--muted)">טוען מצב התחברות...</div>
     <button class="btn-google" id="btn-login" onclick="loginWithGoogle()">
@@ -1221,7 +1283,7 @@
     <div class="config-title" id="config-title">Configure Quiz</div>
 
     <div class="field" id="field-source">
-      <label>Source</label>
+      <label id="lbl-source-field">Source</label>
       <select id="sel-source">
         <option value="all">All Sources</option>
         <option value="General">General</option>
@@ -1230,11 +1292,16 @@
         <option value="Exam C">Exam C</option>
         <option value="Exam D">Exam D</option>
       </select>
+      <!-- Hebrew sources (hidden by default) -->
+      <select id="sel-source-he" class="hidden">
+        <option value="all">כל המקורות</option>
+        <option value="מילון">מילון ISTQB</option>
+      </select>
     </div>
 
     <div class="field" id="field-count">
       <div class="range-row">
-        <label style="margin:0">Number of Questions</label>
+        <label style="margin:0" id="lbl-count-label">Number of Questions</label>
         <span class="range-val" id="lbl-count">20</span>
       </div>
       <input type="range" id="rng-count" min="5" max="40" value="20" step="5"
@@ -1242,7 +1309,7 @@
     </div>
 
     <div class="field" id="field-order">
-      <label>Order</label>
+      <label id="lbl-order-field">Order</label>
       <select id="sel-order">
         <option value="shuffle">Shuffled</option>
         <option value="sequential">Sequential</option>
@@ -1250,8 +1317,8 @@
     </div>
 
     <div class="btn-row">
-      <button class="btn btn-primary" onclick="beginQuiz()">Start Quiz →</button>
-      <button class="btn btn-ghost" onclick="showScreen('home')">← Back</button>
+      <button class="btn btn-primary" onclick="beginQuiz()" id="btn-start-quiz">Start Quiz →</button>
+      <button class="btn btn-ghost" onclick="showScreen('home')" id="btn-config-back">← Back</button>
     </div>
   </div>
 </div>
@@ -1436,6 +1503,9 @@
 <!-- Quiz Logic -->
 <script>
 let ALL_Q = [];
+let ALL_Q_HE = [];
+let ACTIVE_Q = [];  // the pool currently in use (en or he)
+let CURRENT_LANG = 'en';
 let SESSION = { questions: [], idx: 0, correct: 0, wrong: 0, skipped: 0, answers: [], mode: '' };
 
 // One-time cleanup: remove any leftover localStorage from old version
@@ -1458,7 +1528,6 @@ window._currentUser     = null;
 
 // Called whenever WRONG_IDS or BEST change
 async function persistData() {
-  // Firestore only — no localStorage
   if (window._fbSaveUserData && window._currentUser) {
     window._fbSaveUserData({
       wrongIds:    WRONG_IDS,
@@ -1485,14 +1554,83 @@ async function loadCloudData(data) {
 
 async function loadQuestions() {
   try {
-    const resp = await fetch('questions.json');
-    ALL_Q = await resp.json();
-    // Don't call init here — wait for Firebase auth state
+    // Load both in parallel
+    const [respEn, respHe] = await Promise.all([
+      fetch('questions.json'),
+      fetch('questions_he.json')
+    ]);
+    ALL_Q    = await respEn.json();
+    ALL_Q_HE = await respHe.json();
+    ACTIVE_Q = ALL_Q;
+
     window._questionsReady = true;
     if (window._authReady) init();
   } catch(e) {
-    document.getElementById('loading').innerHTML = '<span style="color:#ff6584">⚠ Could not load questions.json</span>';
+    // Try loading English only if Hebrew fails
+    try {
+      const resp = await fetch('questions.json');
+      ALL_Q    = await resp.json();
+      ALL_Q_HE = [];
+      ACTIVE_Q = ALL_Q;
+      window._questionsReady = true;
+      if (window._authReady) init();
+    } catch(e2) {
+      document.getElementById('loading').innerHTML = '<span style="color:#ff6584">⚠ Could not load questions.json</span>';
+    }
   }
+}
+
+function setLang(lang) {
+  CURRENT_LANG = lang;
+  ACTIVE_Q = lang === 'he' ? ALL_Q_HE : ALL_Q;
+
+  // Toggle body class for RTL styling
+  document.body.classList.toggle('lang-he', lang === 'he');
+
+  // Update lang buttons
+  document.getElementById('lang-en-btn').classList.toggle('active', lang === 'en');
+  document.getElementById('lang-he-btn').classList.toggle('active', lang === 'he');
+
+  // Swap source dropdowns
+  const selEn = document.getElementById('sel-source');
+  const selHe = document.getElementById('sel-source-he');
+  if (selEn && selHe) {
+    selEn.classList.toggle('hidden', lang === 'he');
+    selHe.classList.toggle('hidden', lang === 'en');
+  }
+
+  // Update config labels
+  const lbl = document.getElementById('lbl-source-field');
+  const lblCount = document.getElementById('lbl-count-label');
+  const lblOrder = document.getElementById('lbl-order-field');
+  if (lbl)      lbl.textContent     = lang === 'he' ? 'מקור' : 'Source';
+  if (lblCount) lblCount.textContent = lang === 'he' ? 'מספר שאלות' : 'Number of Questions';
+  if (lblOrder) lblOrder.textContent = lang === 'he' ? 'סדר' : 'Order';
+
+  // Update sel-order options
+  const selOrder = document.getElementById('sel-order');
+  if (selOrder) {
+    selOrder.options[0].text = lang === 'he' ? 'אקראי' : 'Shuffled';
+    selOrder.options[1].text = lang === 'he' ? 'רציף' : 'Sequential';
+  }
+
+  // Update mode cards
+  const heMode = lang === 'he';
+  const modeDesc = document.querySelector('#home .mode-grid .mode-card.yellow .mode-desc');
+  if (modeDesc) modeDesc.textContent = heMode
+    ? 'התמקד במקור ספציפי: מילון ISTQB'
+    : 'Focus on a specific exam set: Exam A, Exam B, Exam C, or Exam D.';
+
+  // Update config buttons
+  const btnStart = document.getElementById('btn-start-quiz');
+  const btnBack  = document.getElementById('btn-config-back');
+  if (btnStart) btnStart.textContent = lang === 'he' ? 'התחל קוויז ←' : 'Start Quiz →';
+  if (btnBack)  btnBack.textContent  = lang === 'he' ? '→ חזרה' : '← Back';
+
+  // Update question count display
+  document.getElementById('count-random').textContent = ACTIVE_Q.length + (lang === 'he' ? ' שאלות' : ' Questions');
+  updateWrongCount();
+  updateAnsweredStats();
 }
 
 function init() {
@@ -1555,7 +1693,7 @@ function navTo(page) {
 }
 
 function updateStatsPage() {
-  const total = ALL_Q.length || 0;
+  const total = ACTIVE_Q.length || 0;
   // Basic stats
   const el = (id) => document.getElementById(id);
   if (el('sp-best'))        el('sp-best').textContent        = BEST ? BEST + '%' : '—';
@@ -1625,27 +1763,40 @@ async function clearAllStats() {
 
 function startMode(mode) {
   SESSION.mode = mode;
+  const he = CURRENT_LANG === 'he';
   if (mode === 'random') {
-    document.getElementById('config-title').textContent = '🎲 Random Quiz';
+    document.getElementById('config-title').textContent = he ? '🎲 קוויז אקראי' : '🎲 Random Quiz';
     showScreen('config');
   } else if (mode === 'exam') {
-    runQuiz(shuffle(ALL_Q).slice(0, 40));
+    if (he) {
+      // Hebrew: no timed exam concept, just run all shuffled
+      runQuiz(shuffle(ACTIVE_Q).slice(0, 40));
+    } else {
+      runQuiz(shuffle(ACTIVE_Q).slice(0, 40));
+    }
   } else if (mode === 'wrong') {
-    const wqs = ALL_Q.filter((q, i) => WRONG_IDS.includes(i));
-    if (wqs.length === 0) { alert('No wrong answers recorded yet!'); return; }
+    const wqs = ACTIVE_Q.filter((q, i) => WRONG_IDS.includes(i));
+    if (wqs.length === 0) {
+      alert(he ? 'אין שאלות שגויות עדיין!' : 'No wrong answers recorded yet!');
+      return;
+    }
     runQuiz(shuffle(wqs));
   } else if (mode === 'source') {
-    document.getElementById('config-title').textContent = '📚 By Source';
-    document.getElementById('sel-source').value = 'Exam A';
+    document.getElementById('config-title').textContent = he ? '📚 לפי מקור' : '📚 By Source';
+    if (!he) document.getElementById('sel-source').value = 'Exam A';
+    else     document.getElementById('sel-source-he').value = 'מילון';
     showScreen('config');
   }
 }
 
 function beginQuiz() {
-  const src = document.getElementById('sel-source').value;
+  const he = CURRENT_LANG === 'he';
+  const src = he
+    ? document.getElementById('sel-source-he').value
+    : document.getElementById('sel-source').value;
   const count = parseInt(document.getElementById('rng-count').value);
   const order = document.getElementById('sel-order').value;
-  let pool = src === 'all' ? ALL_Q : ALL_Q.filter(q => q.src === src);
+  let pool = src === 'all' ? ACTIVE_Q : ACTIVE_Q.filter(q => q.src === src);
   if (order === 'shuffle') pool = shuffle(pool);
   runQuiz(pool.slice(0, count));
 }
@@ -1702,7 +1853,7 @@ function selectOption(idx) {
   opts.forEach(o => o.classList.add('disabled'));
 
   // Track answered stats
-  const gIdx = ALL_Q.indexOf(q);
+  const gIdx = ACTIVE_Q.indexOf(q);
   if (gIdx >= 0) {
     ANSWERED_IDS.push(gIdx);
     if (!UNIQUE_IDS.includes(gIdx)) UNIQUE_IDS.push(gIdx);
@@ -1717,7 +1868,7 @@ function selectOption(idx) {
     opts[q.ans].classList.add('correct');
     SESSION.wrong++;
     SESSION.answers.push({ q, chosen: idx, correct: false });
-    const globalIdx = ALL_Q.indexOf(q);
+    const globalIdx = ACTIVE_Q.indexOf(q);
     if (globalIdx >= 0 && !WRONG_IDS.includes(globalIdx)) {
       WRONG_IDS.push(globalIdx);
     }
