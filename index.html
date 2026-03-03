@@ -1505,6 +1505,192 @@
     color: var(--accent);
     border: 1px solid rgba(108,99,255,0.2);
   }
+  /* ========== FLASHCARDS PAGE ========== */
+  #flashcards-page {
+    min-height: 100vh;
+    padding: 2rem 1.5rem 6rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  .fc-controls {
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .fc-search-wrap { flex: 1; min-width: 180px; }
+
+  #fc-search {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    padding: 0.6rem 1rem;
+    outline: none;
+    direction: rtl;
+    transition: border-color 0.2s;
+  }
+  #fc-search:focus { border-color: var(--accent); }
+
+  .fc-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .fc-prog-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .fc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+  }
+
+  /* The flip card container */
+  .fc-card {
+    height: 180px;
+    perspective: 1000px;
+    cursor: pointer;
+  }
+
+  .fc-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.45s cubic-bezier(0.4,0,0.2,1);
+    border-radius: 14px;
+  }
+
+  .fc-card.flipped .fc-card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .fc-front, .fc-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+    overflow: hidden;
+  }
+
+  .fc-front {
+    background: var(--card);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fc-back {
+    background: var(--surface);
+    transform: rotateY(180deg);
+    justify-content: flex-start;
+    border-color: rgba(108,99,255,0.3);
+  }
+
+  .fc-card:hover .fc-front,
+  .fc-card:hover .fc-back { border-color: rgba(108,99,255,0.45); }
+
+  .fc-card.known .fc-front { border-color: rgba(67,233,123,0.4); background: rgba(67,233,123,0.04); }
+  .fc-card.known .fc-back  { border-color: rgba(67,233,123,0.4); }
+
+  .fc-term {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text);
+    direction: rtl;
+    line-height: 1.4;
+  }
+
+  .fc-hint {
+    font-size: 0.62rem;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-top: 0.6rem;
+    opacity: 0.6;
+  }
+
+  .fc-back-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  .fc-definition {
+    font-size: 0.78rem;
+    line-height: 1.65;
+    color: var(--text);
+    direction: rtl;
+    text-align: right;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .fc-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .fc-known-btn {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .fc-known-btn:hover,
+  .fc-card.known .fc-known-btn {
+    background: rgba(67,233,123,0.15);
+    border-color: rgba(67,233,123,0.5);
+    color: var(--success);
+  }
+
+  .fc-id {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--muted);
+    opacity: 0.5;
+  }
+
+  @media (max-width: 520px) {
+    .fc-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+    .fc-card { height: 150px; }
+    .fc-term { font-size: 0.85rem; }
+  }
+
 </style>
 </head>
 <body class="sidebar-collapsed">
@@ -1600,6 +1786,12 @@
       <div class="mode-title" id="mc-title-speed">מצב בזק</div>
       <div class="mode-desc" id="mc-desc-speed">30 שניות לשאלה — טעות אוטומטית אם לא עונים בזמן.</div>
       <div class="mode-count" id="mc-count-speed">30 שנ׳ לשאלה</div>
+    </div>
+    <div class="mode-card teal" onclick="navTo('flashcards-page')">
+      <div class="mode-icon">🃏</div>
+      <div class="mode-title" id="mc-title-flash">פלאשקארדס</div>
+      <div class="mode-desc" id="mc-desc-flash">324 מושגי מפתח — הפוך כל כרטיס לראות את ההגדרה.</div>
+      <div class="mode-count" id="mc-count-flash">324 מושגים</div>
     </div>
   </div>
 </div>
@@ -1862,6 +2054,38 @@
   </div>
 </div>
 
+<!-- Flashcards Page -->
+<div id="flashcards-page" class="screen hidden has-top-bar" style="direction:rtl">
+  <div class="page-title">🃏 פלאשקארדס</div>
+  <div class="page-sub" id="fc-sub">324 מושגי מפתח של ISTQB</div>
+
+  <!-- Controls bar -->
+  <div class="fc-controls">
+    <div class="fc-search-wrap">
+      <input type="text" id="fc-search" placeholder="🔍 חפש מושג..." oninput="fcFilter()" />
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-ghost" id="fc-btn-shuffle" onclick="fcShuffle()" style="font-size:0.8rem;padding:0.5rem 0.9rem">🔀 ערבב</button>
+      <button class="btn btn-ghost" id="fc-btn-unknown" onclick="fcFilterUnknown()" style="font-size:0.8rem;padding:0.5rem 0.9rem">❓ לא יודע</button>
+      <button class="btn btn-ghost" id="fc-btn-all" onclick="fcShowAll()" style="font-size:0.8rem;padding:0.5rem 0.9rem;display:none">הכל</button>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="fc-progress-row">
+    <span id="fc-known-count" style="color:var(--success);font-size:0.8rem;font-family:'Space Mono',monospace">0 ידועים</span>
+    <div class="fc-prog-bar"><div id="fc-prog-fill" style="width:0%;height:100%;background:var(--success);border-radius:100px;transition:width 0.4s"></div></div>
+    <span id="fc-total-count" style="color:var(--muted);font-size:0.8rem;font-family:'Space Mono',monospace">0 / 324</span>
+  </div>
+
+  <!-- Cards grid -->
+  <div class="fc-grid" id="fc-grid"></div>
+
+  <div id="fc-empty" class="hidden" style="text-align:center;color:var(--muted);padding:3rem;font-size:0.9rem">
+    לא נמצאו מושגים התואמים את החיפוש
+  </div>
+</div>
+
 <!-- Sidebar Nav -->
 <nav class="sidebar collapsed" id="global-nav">
   <div class="sidebar-logo">✦ תרגול ISTQB</div>
@@ -1875,6 +2099,10 @@
   </button>
   <button class="nav-btn" id="nav-about" onclick="navTo('about-page')">
     <span class="nav-icon">ℹ️</span>אודות
+  </button>
+
+  <button class="nav-btn" id="nav-flash" onclick="navTo('flashcards-page')">
+    <span class="nav-icon">🃏</span><span>פלאשקארדס</span>
   </button>
 
   <hr class="nav-divider">
@@ -1966,6 +2194,9 @@ function navStartMode(mode) {
 }
 let ALL_Q_HE = [];
 let ACTIVE_Q = [];  // the pool currently in use (en or he)
+let ALL_GLOSSARY = [];  // 324 glossary terms
+let FC_POOL = [];        // current flashcard pool (filtered/shuffled)
+let FC_KNOWN = new Set(); // ids of cards marked as known
 let CURRENT_LANG = 'he';
 let SESSION = { questions: [], idx: 0, correct: 0, wrong: 0, skipped: 0, answers: [], mode: '' };
 
@@ -2024,14 +2255,17 @@ async function loadCloudData(data) {
 
 async function loadQuestions() {
   try {
-    // Load both in parallel
-    const [respEn, respHe] = await Promise.all([
+    const [respEn, respHe, respGlossary] = await Promise.all([
       fetch('questions.json'),
-      fetch('questions_he.json')
+      fetch('questions_he.json'),
+      fetch('glossary_he.json').catch(() => null)
     ]);
     ALL_Q    = await respEn.json();
     ALL_Q_HE = await respHe.json();
     ACTIVE_Q = ALL_Q;
+    if (respGlossary) {
+      try { ALL_GLOSSARY = await respGlossary.json(); } catch(e) {}
+    }
 
     window._questionsReady = true;
     if (window._authReady) init();
@@ -2231,7 +2465,7 @@ window._questionsReady = false;
 window._authReady      = false;
 
 function showScreen(id) {
-  ['loading','home','config','quiz','results','stats-page','about-page','saved-page'].forEach(s => {
+  ['loading','home','config','quiz','results','stats-page','about-page','saved-page','flashcards-page'].forEach(s => {
     const el = document.getElementById(s);
     if (el) el.classList.add('hidden');
   });
@@ -2245,9 +2479,8 @@ function showScreen(id) {
     nav.classList.toggle('hidden-nav', hide);
     if (toggleBtn) toggleBtn.style.display = hide ? 'none' : 'flex';
   }
-  const showLogo = ['stats-page','about-page','saved-page'].includes(id);
+  const showLogo = ['stats-page','about-page','saved-page','flashcards-page'].includes(id);
   if (logoBar) logoBar.classList.toggle('hidden', !showLogo);
-
   const guestBanner = document.getElementById('login-wall');
   if (guestBanner && !window._currentUser) {
     guestBanner.classList.toggle('hidden', id !== 'home');
@@ -2265,13 +2498,18 @@ function toggleSidebar() {
 
 function navTo(page) {
   showScreen(page);
-  ['home','stats-page','about-page','saved-page'].forEach(p => {
-    const key = p === 'home' ? 'nav-home' : p === 'stats-page' ? 'nav-stats' : p === 'about-page' ? 'nav-about' : 'nav-saved';
+  ['home','stats-page','about-page','saved-page','flashcards-page'].forEach(p => {
+    const key = p === 'home' ? 'nav-home'
+              : p === 'stats-page' ? 'nav-stats'
+              : p === 'about-page' ? 'nav-about'
+              : p === 'saved-page' ? 'nav-saved'
+              : 'nav-flash';
     const btn = document.getElementById(key);
     if (btn) btn.classList.toggle('active', p === page);
   });
   if (page === 'stats-page') updateStatsPage();
   if (page === 'saved-page') updateSavedPage();
+  if (page === 'flashcards-page') initFlashcards();
 }
 
 function updateStatsPage() {
@@ -2890,6 +3128,126 @@ async function clearSaved() {
   persistData();
   updateSavedPage();
 }
+
+// ── FLASHCARDS ──────────────────────────────────────────────────────────────
+
+function initFlashcards() {
+  FC_POOL = [...ALL_GLOSSARY];
+  renderFlashcards();
+}
+
+function renderFlashcards() {
+  const grid  = document.getElementById('fc-grid');
+  const empty = document.getElementById('fc-empty');
+  const sub   = document.getElementById('fc-sub');
+  if (!grid) return;
+
+  grid.innerHTML = '';
+
+  if (FC_POOL.length === 0) {
+    empty.classList.remove('hidden');
+    if (sub) sub.textContent = 'לא נמצאו תוצאות';
+    updateFcProgress();
+    return;
+  }
+  empty.classList.add('hidden');
+  if (sub) sub.textContent = `${FC_POOL.length} מושגים מוצגים`;
+
+  FC_POOL.forEach(item => {
+    const isKnown = FC_KNOWN.has(item.id);
+    const card = document.createElement('div');
+    card.className = 'fc-card' + (isKnown ? ' known' : '');
+    card.dataset.id = item.id;
+    card.innerHTML = `
+      <div class="fc-card-inner">
+        <div class="fc-front">
+          <div class="fc-term">${item.term}</div>
+          <div class="fc-hint">הקש להפוך ◀</div>
+        </div>
+        <div class="fc-back">
+          <div class="fc-back-label">הגדרה</div>
+          <div class="fc-definition">${item.definition}</div>
+          <div class="fc-card-footer">
+            <span class="fc-id">#${item.id}</span>
+            <button class="fc-known-btn" onclick="toggleKnown(event, ${item.id}, this.closest('.fc-card'))">
+              ${isKnown ? '✓ ידוע' : '+ ידוע'}
+            </button>
+          </div>
+        </div>
+      </div>`;
+    card.addEventListener('click', (e) => {
+      if (e.target.classList.contains('fc-known-btn')) return;
+      card.classList.toggle('flipped');
+    });
+    grid.appendChild(card);
+  });
+
+  updateFcProgress();
+}
+
+function toggleKnown(e, id, cardEl) {
+  e.stopPropagation();
+  if (FC_KNOWN.has(id)) {
+    FC_KNOWN.delete(id);
+    cardEl.classList.remove('known', 'flipped');
+    cardEl.querySelector('.fc-known-btn').textContent = '+ ידוע';
+  } else {
+    FC_KNOWN.add(id);
+    cardEl.classList.add('known');
+    cardEl.querySelector('.fc-known-btn').textContent = '✓ ידוע';
+  }
+  updateFcProgress();
+}
+
+function updateFcProgress() {
+  const total   = ALL_GLOSSARY.length;
+  const known   = FC_KNOWN.size;
+  const pct     = total ? Math.round(known / total * 100) : 0;
+  const knownEl = document.getElementById('fc-known-count');
+  const fillEl  = document.getElementById('fc-prog-fill');
+  const totEl   = document.getElementById('fc-total-count');
+  if (knownEl) knownEl.textContent = `${known} ידועים`;
+  if (fillEl)  fillEl.style.width  = pct + '%';
+  if (totEl)   totEl.textContent   = `${FC_POOL.length} / ${total}`;
+}
+
+function fcFilter() {
+  const q = (document.getElementById('fc-search')?.value || '').trim().toLowerCase();
+  FC_POOL = q
+    ? ALL_GLOSSARY.filter(x => x.term.toLowerCase().includes(q) || x.definition.includes(q))
+    : [...ALL_GLOSSARY];
+  renderFlashcards();
+}
+
+function fcShuffle() {
+  const q = (document.getElementById('fc-search')?.value || '').trim().toLowerCase();
+  const base = q
+    ? ALL_GLOSSARY.filter(x => x.term.toLowerCase().includes(q) || x.definition.includes(q))
+    : [...ALL_GLOSSARY];
+  FC_POOL = shuffle(base);
+  renderFlashcards();
+}
+
+function fcFilterUnknown() {
+  FC_POOL = ALL_GLOSSARY.filter(x => !FC_KNOWN.has(x.id));
+  const btn = document.getElementById('fc-btn-all');
+  const unk = document.getElementById('fc-btn-unknown');
+  if (btn) btn.style.display = 'inline-flex';
+  if (unk) unk.style.display = 'none';
+  renderFlashcards();
+}
+
+function fcShowAll() {
+  FC_POOL = [...ALL_GLOSSARY];
+  const btn = document.getElementById('fc-btn-all');
+  const unk = document.getElementById('fc-btn-unknown');
+  if (btn) btn.style.display = 'none';
+  if (unk) unk.style.display = 'inline-flex';
+  document.getElementById('fc-search').value = '';
+  renderFlashcards();
+}
+
+// ── END FLASHCARDS ───────────────────────────────────────────────────────────
 
 loadQuestions(); // loads questions.json; init() fires only after auth resolves
 </script>
