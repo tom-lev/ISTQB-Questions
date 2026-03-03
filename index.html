@@ -1598,6 +1598,7 @@
     background: var(--card);
     align-items: center;
     justify-content: center;
+    gap: 0.6rem;
   }
 
   .fc-back {
@@ -1623,12 +1624,16 @@
     line-height: 1.4;
   }
 
+  /* Prominent tap hint */
   .fc-hint {
-    font-size: 0.62rem;
-    color: var(--muted);
+    font-size: 0.7rem;
+    color: var(--accent);
     font-family: 'Space Mono', monospace;
-    margin-top: 0.6rem;
-    opacity: 0.6;
+    background: rgba(108,99,255,0.1);
+    border: 1px solid rgba(108,99,255,0.25);
+    border-radius: 20px;
+    padding: 0.2rem 0.7rem;
+    letter-spacing: 0.03em;
   }
 
   .fc-back-label {
@@ -1685,6 +1690,173 @@
     opacity: 0.5;
   }
 
+  /* ── ONE-AT-A-TIME MODE ── */
+  #fc-one {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.2rem;
+    padding-bottom: 2rem;
+  }
+
+  .fco-counter {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .fco-stage {
+    width: 100%;
+    max-width: 560px;
+    perspective: 1200px;
+    cursor: pointer;
+  }
+
+  .fco-card {
+    width: 100%;
+    height: 320px;
+    position: relative;
+  }
+
+  .fco-card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+    border-radius: 20px;
+  }
+
+  .fco-card.flipped .fco-card-inner {
+    transform: rotateY(180deg);
+  }
+
+  .fco-front, .fco-back {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 2.4rem;
+    gap: 1rem;
+    border: 1px solid var(--border);
+  }
+
+  .fco-front {
+    background: var(--card);
+    border-color: rgba(108,99,255,0.25);
+  }
+
+  .fco-back {
+    background: var(--surface);
+    transform: rotateY(180deg);
+    border-color: rgba(108,99,255,0.4);
+    justify-content: flex-start;
+    padding-top: 1.8rem;
+  }
+
+  .fco-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    position: absolute;
+    top: 1rem;
+    right: 1.4rem;
+  }
+
+  .fco-content {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text);
+    direction: rtl;
+    line-height: 1.45;
+  }
+
+  .fco-back .fco-content {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 400;
+    text-align: right;
+    line-height: 1.7;
+    overflow-y: auto;
+    max-height: 220px;
+    width: 100%;
+    margin-top: 1.4rem;
+  }
+
+  .fco-tap-hint {
+    font-size: 0.78rem;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    background: rgba(108,99,255,0.1);
+    border: 1px solid rgba(108,99,255,0.25);
+    border-radius: 20px;
+    padding: 0.3rem 1rem;
+    position: absolute;
+    bottom: 1.2rem;
+  }
+
+  .fco-actions {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  .fco-btn {
+    flex: 1;
+    padding: 0.85rem;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .fco-known {
+    background: rgba(67,233,123,0.1);
+    border-color: rgba(67,233,123,0.35);
+    color: var(--success);
+  }
+  .fco-known:hover { background: rgba(67,233,123,0.2); transform: translateY(-2px); }
+
+  .fco-unknown {
+    background: rgba(255,101,132,0.08);
+    border-color: rgba(255,101,132,0.3);
+    color: var(--error);
+  }
+  .fco-unknown:hover { background: rgba(255,101,132,0.15); transform: translateY(-2px); }
+
+  .fco-card.answer-known  { animation: fco-swipe-right 0.38s ease forwards; }
+  .fco-card.answer-unknown { animation: fco-swipe-left  0.38s ease forwards; }
+
+  @keyframes fco-swipe-right {
+    0%   { transform: translateX(0)    rotateZ(0deg)   opacity(1); }
+    100% { transform: translateX(120%) rotateZ(8deg);  opacity: 0; }
+  }
+  @keyframes fco-swipe-left {
+    0%   { transform: translateX(0)     rotateZ(0deg)   opacity(1); }
+    100% { transform: translateX(-120%) rotateZ(-8deg); opacity: 0; }
+  }
+
+  .fco-nav {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+  }
+
+  /* ── SHARED TOGGLE ── */
   .fc-flip-toggle {
     display: flex;
     background: var(--surface);
@@ -1717,6 +1889,8 @@
     .fc-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
     .fc-card { height: 150px; }
     .fc-term { font-size: 0.85rem; }
+    .fco-card { height: 260px; }
+    .fco-content { font-size: 1.1rem; }
   }
 
 </style>
@@ -2093,14 +2267,19 @@
       <input type="text" id="fc-search" placeholder="🔍 חפש מושג..." oninput="fcFilter()" />
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
-      <!-- Flip direction toggle -->
-      <div class="fc-flip-toggle" title="בחר מה מוצג קודם">
-        <button id="fc-dir-term" class="fc-dir-btn active" onclick="fcSetDirection('term')">מושג ← הגדרה</button>
-        <button id="fc-dir-def"  class="fc-dir-btn"        onclick="fcSetDirection('def')">הגדרה ← מושג</button>
+      <!-- View mode toggle -->
+      <div class="fc-flip-toggle" title="מצב תצוגה">
+        <button id="fc-view-grid" class="fc-dir-btn active" onclick="fcSetView('grid')" title="גריד">⊞ גריד</button>
+        <button id="fc-view-one"  class="fc-dir-btn"        onclick="fcSetView('one')"  title="אחד-אחד">▭ אחד-אחד</button>
       </div>
-      <button class="btn btn-ghost" id="fc-btn-shuffle" onclick="fcShuffle()" style="font-size:0.8rem;padding:0.5rem 0.9rem">🔀 ערבב</button>
-      <button class="btn btn-ghost" id="fc-btn-unknown" onclick="fcFilterUnknown()" style="font-size:0.8rem;padding:0.5rem 0.9rem">❓ לא יודע</button>
-      <button class="btn btn-ghost" id="fc-btn-all" onclick="fcShowAll()" style="font-size:0.8rem;padding:0.5rem 0.9rem;display:none">הכל</button>
+      <!-- Flip direction toggle -->
+      <div class="fc-flip-toggle" title="מה מוצג קודם">
+        <button id="fc-dir-term" class="fc-dir-btn active" onclick="fcSetDirection('term')">מושג ראשון</button>
+        <button id="fc-dir-def"  class="fc-dir-btn"        onclick="fcSetDirection('def')">הגדרה ראשונה</button>
+      </div>
+      <button class="btn btn-ghost" id="fc-btn-shuffle"  onclick="fcShuffle()"        style="font-size:0.8rem;padding:0.5rem 0.9rem">🔀 ערבב</button>
+      <button class="btn btn-ghost" id="fc-btn-unknown"  onclick="fcFilterUnknown()"  style="font-size:0.8rem;padding:0.5rem 0.9rem">❓ לא יודע</button>
+      <button class="btn btn-ghost" id="fc-btn-all"      onclick="fcShowAll()"        style="font-size:0.8rem;padding:0.5rem 0.9rem;display:none">הכל</button>
     </div>
   </div>
 
@@ -2111,8 +2290,45 @@
     <span id="fc-total-count" style="color:var(--muted);font-size:0.8rem;font-family:'Space Mono',monospace">0 / 324</span>
   </div>
 
-  <!-- Cards grid -->
+  <!-- GRID VIEW -->
   <div class="fc-grid" id="fc-grid"></div>
+
+  <!-- ONE-AT-A-TIME VIEW -->
+  <div id="fc-one" class="hidden">
+    <!-- counter -->
+    <div class="fco-counter">
+      <span id="fco-idx">1</span> / <span id="fco-total">324</span>
+    </div>
+
+    <!-- the big card -->
+    <div class="fco-stage" id="fco-stage">
+      <div class="fco-card" id="fco-card">
+        <div class="fco-card-inner" id="fco-inner">
+          <div class="fco-front" id="fco-front">
+            <div class="fco-label" id="fco-front-label">מושג</div>
+            <div class="fco-content" id="fco-front-content"></div>
+            <div class="fco-tap-hint">הקש לגלות ▾</div>
+          </div>
+          <div class="fco-back" id="fco-back">
+            <div class="fco-label" id="fco-back-label">הגדרה</div>
+            <div class="fco-content" id="fco-back-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- action buttons -->
+    <div class="fco-actions">
+      <button class="fco-btn fco-unknown" onclick="fcoAnswer(false)">✕ לא יודע</button>
+      <button class="fco-btn fco-known"   onclick="fcoAnswer(true)">✓ ידוע</button>
+    </div>
+
+    <!-- nav row -->
+    <div class="fco-nav">
+      <button class="btn btn-ghost" onclick="fcoGo(-1)" style="font-size:0.85rem;padding:0.5rem 1rem">→ קודם</button>
+      <button class="btn btn-ghost" id="fco-skip-btn" onclick="fcoGo(1)" style="font-size:0.85rem;padding:0.5rem 1rem">דלג ←</button>
+    </div>
+  </div>
 
   <div id="fc-empty" class="hidden" style="text-align:center;color:var(--muted);padding:3rem;font-size:0.9rem">
     לא נמצאו מושגים התואמים את החיפוש
@@ -3165,8 +3381,19 @@ async function clearSaved() {
 
 // ── FLASHCARDS ──────────────────────────────────────────────────────────────
 
+let FC_VIEW = 'grid'; // 'grid' | 'one'
+let FCO_IDX = 0;      // current index in one-at-a-time mode
+
 function initFlashcards() {
   FC_POOL = [...ALL_GLOSSARY];
+  FCO_IDX = 0;
+  renderFlashcards();
+}
+
+function fcSetView(view) {
+  FC_VIEW = view;
+  document.getElementById('fc-view-grid').classList.toggle('active', view === 'grid');
+  document.getElementById('fc-view-one').classList.toggle('active',  view === 'one');
   renderFlashcards();
 }
 
@@ -3174,18 +3401,20 @@ function fcSetDirection(dir) {
   FC_DIRECTION = dir;
   document.getElementById('fc-dir-term').classList.toggle('active', dir === 'term');
   document.getElementById('fc-dir-def').classList.toggle('active',  dir === 'def');
+  FCO_IDX = 0;
   renderFlashcards();
 }
 
 function renderFlashcards() {
-  const grid  = document.getElementById('fc-grid');
-  const empty = document.getElementById('fc-empty');
-  const sub   = document.getElementById('fc-sub');
-  if (!grid) return;
-
-  grid.innerHTML = '';
+  const gridEl = document.getElementById('fc-grid');
+  const oneEl  = document.getElementById('fc-one');
+  const empty  = document.getElementById('fc-empty');
+  const sub    = document.getElementById('fc-sub');
+  if (!gridEl) return;
 
   if (FC_POOL.length === 0) {
+    gridEl.classList.add('hidden');
+    oneEl.classList.add('hidden');
     empty.classList.remove('hidden');
     if (sub) sub.textContent = 'לא נמצאו תוצאות';
     updateFcProgress();
@@ -3194,15 +3423,31 @@ function renderFlashcards() {
   empty.classList.add('hidden');
   if (sub) sub.textContent = `${FC_POOL.length} מושגים מוצגים`;
 
+  if (FC_VIEW === 'grid') {
+    oneEl.classList.add('hidden');
+    gridEl.classList.remove('hidden');
+    renderGrid();
+  } else {
+    gridEl.classList.add('hidden');
+    oneEl.classList.remove('hidden');
+    renderOne();
+  }
+  updateFcProgress();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('fc-grid');
+  grid.innerHTML = '';
   const termFirst = FC_DIRECTION === 'term';
 
   FC_POOL.forEach(item => {
     const isKnown = FC_KNOWN.has(item.id);
 
-    // Front = what user sees first, Back = revealed on flip
     const frontContent = termFirst
-      ? `<div class="fc-term">${item.term}</div><div class="fc-hint">הקש לראות הגדרה ◀</div>`
-      : `<div class="fc-term" style="font-size:0.78rem;font-weight:400;line-height:1.6;text-align:right">${item.definition}</div><div class="fc-hint">הקש לראות מושג ◀</div>`;
+      ? `<div class="fc-term">${item.term}</div>
+         <div class="fc-hint">הקש לראות הגדרה ▾</div>`
+      : `<div class="fc-term" style="font-size:0.78rem;font-weight:400;line-height:1.6;text-align:right;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical">${item.definition}</div>
+         <div class="fc-hint">הקש לראות מושג ▾</div>`;
 
     const backContent = termFirst
       ? `<div class="fc-back-label">הגדרה</div>
@@ -3220,20 +3465,114 @@ function renderFlashcards() {
           ${backContent}
           <div class="fc-card-footer">
             <span class="fc-id">#${item.id}</span>
-            <button class="fc-known-btn" onclick="toggleKnown(event, ${item.id}, this.closest('.fc-card'))">
+            <button class="fc-known-btn" onclick="toggleKnown(event,${item.id},this.closest('.fc-card'))">
               ${isKnown ? '✓ ידוע' : '+ ידוע'}
             </button>
           </div>
         </div>
       </div>`;
-    card.addEventListener('click', (e) => {
+    card.addEventListener('click', e => {
       if (e.target.classList.contains('fc-known-btn')) return;
       card.classList.toggle('flipped');
     });
     grid.appendChild(card);
   });
+}
 
+function renderOne() {
+  if (FC_POOL.length === 0) return;
+  if (FCO_IDX >= FC_POOL.length) FCO_IDX = FC_POOL.length - 1;
+  if (FCO_IDX < 0) FCO_IDX = 0;
+
+  const item      = FC_POOL[FCO_IDX];
+  const termFirst = FC_DIRECTION === 'term';
+  const isKnown   = FC_KNOWN.has(item.id);
+
+  document.getElementById('fco-idx').textContent   = FCO_IDX + 1;
+  document.getElementById('fco-total').textContent = FC_POOL.length;
+
+  const frontLabel   = document.getElementById('fco-front-label');
+  const frontContent = document.getElementById('fco-front-content');
+  const backLabel    = document.getElementById('fco-back-label');
+  const backContent  = document.getElementById('fco-back-content');
+
+  if (termFirst) {
+    frontLabel.textContent   = 'מושג';
+    frontContent.textContent = item.term;
+    frontContent.style.fontSize = '1.35rem';
+    backLabel.textContent    = 'הגדרה';
+    backContent.textContent  = item.definition;
+    backContent.style.fontSize = '0.95rem';
+  } else {
+    frontLabel.textContent   = 'הגדרה';
+    frontContent.textContent = item.definition;
+    frontContent.style.fontSize = '0.95rem';
+    backLabel.textContent    = 'מושג';
+    backContent.textContent  = item.term;
+    backContent.style.fontSize = '1.35rem';
+  }
+
+  // Reset flip state
+  const cardEl = document.getElementById('fco-card');
+  cardEl.classList.remove('flipped', 'answer-known', 'answer-unknown');
+  cardEl.style.animation = 'none';
+  cardEl.style.opacity   = '1';
+  cardEl.style.transform = '';
+
+  // Known button state
+  const knownBtn = document.querySelector('.fco-known');
+  if (knownBtn) knownBtn.textContent = isKnown ? '✓ ידוע' : '✓ ידוע';
+
+  // Stage click = flip
+  const stage = document.getElementById('fco-stage');
+  stage.onclick = () => cardEl.classList.toggle('flipped');
+}
+
+function fcoAnswer(known) {
+  const item = FC_POOL[FCO_IDX];
+  if (!item) return;
+
+  // Update known state
+  if (known) FC_KNOWN.add(item.id);
+  else       FC_KNOWN.delete(item.id);
   updateFcProgress();
+
+  // Animate out
+  const cardEl = document.getElementById('fco-card');
+  cardEl.classList.add(known ? 'answer-known' : 'answer-unknown');
+
+  setTimeout(() => {
+    FCO_IDX++;
+    if (FCO_IDX >= FC_POOL.length) {
+      // Round complete
+      cardEl.style.opacity   = '1';
+      cardEl.style.animation = 'none';
+      cardEl.classList.remove('answer-known', 'answer-unknown', 'flipped');
+      showFcoComplete();
+    } else {
+      renderOne();
+    }
+  }, 380);
+}
+
+function fcoGo(delta) {
+  FCO_IDX = Math.max(0, Math.min(FC_POOL.length - 1, FCO_IDX + delta));
+  renderOne();
+}
+
+function showFcoComplete() {
+  const known = FC_KNOWN.size;
+  const total = FC_POOL.length;
+  const front = document.getElementById('fco-front-content');
+  const lbl   = document.getElementById('fco-front-label');
+  lbl.textContent   = '🎉 סיימת!';
+  front.textContent = `ידוע: ${known} / ${total}`;
+  front.style.fontSize = '1.4rem';
+  document.getElementById('fco-tap-hint') && (document.querySelector('.fco-tap-hint').style.display = 'none');
+  document.getElementById('fco-stage').onclick = null;
+  // Offer restart
+  const nav = document.querySelector('.fco-nav');
+  if (nav) nav.innerHTML = `<button class="btn btn-primary" onclick="FCO_IDX=0;renderOne();document.querySelector('.fco-tap-hint').style.display='';document.querySelector('.fco-nav').innerHTML='<button class=\\"btn btn-ghost\\" onclick=\\"fcoGo(-1)\\" style=\\"font-size:0.85rem;padding:0.5rem 1rem\\">→ קודם</button><button class=\\"btn btn-ghost\\" id=\\"fco-skip-btn\\" onclick=\\"fcoGo(1)\\" style=\\"font-size:0.85rem;padding:0.5rem 1rem\\">דלג ←</button>'">🔄 מחדש</button>`;
 }
 
 function toggleKnown(e, id, cardEl) {
@@ -3267,6 +3606,7 @@ function fcFilter() {
   FC_POOL = q
     ? ALL_GLOSSARY.filter(x => x.term.toLowerCase().includes(q) || x.definition.includes(q))
     : [...ALL_GLOSSARY];
+  FCO_IDX = 0;
   renderFlashcards();
 }
 
@@ -3276,24 +3616,23 @@ function fcShuffle() {
     ? ALL_GLOSSARY.filter(x => x.term.toLowerCase().includes(q) || x.definition.includes(q))
     : [...ALL_GLOSSARY];
   FC_POOL = shuffle(base);
+  FCO_IDX = 0;
   renderFlashcards();
 }
 
 function fcFilterUnknown() {
   FC_POOL = ALL_GLOSSARY.filter(x => !FC_KNOWN.has(x.id));
-  const btn = document.getElementById('fc-btn-all');
-  const unk = document.getElementById('fc-btn-unknown');
-  if (btn) btn.style.display = 'inline-flex';
-  if (unk) unk.style.display = 'none';
+  FCO_IDX = 0;
+  document.getElementById('fc-btn-all').style.display     = 'inline-flex';
+  document.getElementById('fc-btn-unknown').style.display = 'none';
   renderFlashcards();
 }
 
 function fcShowAll() {
   FC_POOL = [...ALL_GLOSSARY];
-  const btn = document.getElementById('fc-btn-all');
-  const unk = document.getElementById('fc-btn-unknown');
-  if (btn) btn.style.display = 'none';
-  if (unk) unk.style.display = 'inline-flex';
+  FCO_IDX = 0;
+  document.getElementById('fc-btn-all').style.display     = 'none';
+  document.getElementById('fc-btn-unknown').style.display = 'inline-flex';
   document.getElementById('fc-search').value = '';
   renderFlashcards();
 }
