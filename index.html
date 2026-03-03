@@ -1086,21 +1086,42 @@
 
   .sidebar-toggle:hover { color: var(--accent); border-color: rgba(108,99,255,0.4); }
 
-  /* When sidebar is open, move toggle button inside it */
-  .sidebar:not(.collapsed) ~ .sidebar-toggle,
-  body.sidebar-open .sidebar-toggle {
-    right: 168px;
+  /* When sidebar is open, hide the external toggle - close btn is inside sidebar */
+  .sidebar:not(.collapsed) ~ .sidebar-toggle {
+    display: none !important;
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.2rem 0.4rem 0.8rem 0.6rem;
   }
 
   .sidebar-logo {
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-family: 'Syne', sans-serif;
     font-weight: 800;
     color: var(--accent);
-    text-align: center;
-    padding: 0.4rem 0 0.8rem;
     letter-spacing: 0.05em;
   }
+
+  .sidebar-close-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .sidebar-close-btn:hover { color: var(--text); background: rgba(108,99,255,0.1); }
 
   .nav-btn {
     display: flex;
@@ -2361,7 +2382,10 @@
 
 <!-- Sidebar Nav -->
 <nav class="sidebar collapsed" id="global-nav">
-  <div class="sidebar-logo">✦ תרגול ISTQB</div>
+  <div class="sidebar-header">
+    <div class="sidebar-logo">✦ ISTQB</div>
+    <button class="sidebar-close-btn" onclick="toggleSidebar()" title="סגור">✕</button>
+  </div>
 
   <button class="nav-btn active" id="nav-home" onclick="navTo('home')">
     <span class="nav-icon">🏠</span>בית
