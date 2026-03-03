@@ -1328,7 +1328,11 @@
       <!-- Hebrew sources (hidden by default) -->
       <select id="sel-source-he" class="hidden">
         <option value="all">כל המקורות</option>
-        <option value="מילון">מילון ISTQB</option>
+        <option value="בחינה לדוגמא גרסה א'">בחינה לדוגמא גרסה א'</option>
+        <option value="בחינה לדוגמא גרסה ב'">בחינה לדוגמא גרסה ב'</option>
+        <option value="בחינה לדוגמא גרסה ג'">בחינה לדוגמא גרסה ג'</option>
+        <option value="בחינה לדוגמא גרסה ד'">בחינה לדוגמא גרסה ד'</option>
+        <option value="חידון מילות מפתח">חידון מילות מפתח</option>
       </select>
     </div>
 
@@ -1501,7 +1505,7 @@
   <div class="about-section">
     <h3>🚀 על האפליקציה</h3>
     <p>
-      אפליקציה זו נבנתה כדי לעזור לך להתכונן לבחינת ISTQB CTFL. היא מכילה שאלות מ-4 מקורות שונים
+      אפליקציה זו נבנתה כדי לעזור לך להתכונן לבחינת ISTQB CTFL. היא מכילה שאלות מ-4 מקורות שונים באנגלית ו-5 מקורות בעברית (בחינות לדוגמא גרסה א'-ד' וחידון מילות מפתח),
       ומאפשרת תרגול ממוקד, מעקב אחר שגיאות, ושמירת התקדמות בענן.
     </p>
     <div class="about-badge-row">
@@ -1510,6 +1514,11 @@
       <span class="about-tag">Exam C</span>
       <span class="about-tag">Exam D</span>
       <span class="about-tag">General</span>
+      <span class="about-tag">בחינה א'</span>
+      <span class="about-tag">בחינה ב'</span>
+      <span class="about-tag">בחינה ג'</span>
+      <span class="about-tag">בחינה ד'</span>
+      <span class="about-tag">מילות מפתח</span>
     </div>
   </div>
 </div>
@@ -1655,8 +1664,8 @@ function setLang(lang) {
     cards[2].querySelector('.mode-desc').textContent  = he ? 'תרגל רק את השאלות שטעית בהן בעבר.' : 'Practice only the questions you previously answered wrong.';
     // Source
     cards[3].querySelector('.mode-title').textContent = he ? 'לפי מקור' : 'By Source';
-    cards[3].querySelector('.mode-desc').textContent  = he ? 'התמקד במקור ספציפי: מילון ISTQB' : 'Focus on a specific exam set: Exam A, Exam B, Exam C, or Exam D.';
-    cards[3].querySelector('.mode-count').textContent = he ? 'מקור 1' : '5 Sources';
+    cards[3].querySelector('.mode-desc').textContent  = he ? 'התמקד במקור ספציפי: בחינה לדוגמא א׳-ד׳ או חידון מילות מפתח.' : 'Focus on a specific exam set: Exam A, Exam B, Exam C, or Exam D.';
+    cards[3].querySelector('.mode-count').textContent = he ? '5 מקורות' : '5 Sources';
   }
 
   // ── Auth buttons ──
@@ -1905,7 +1914,7 @@ function startMode(mode) {
   } else if (mode === 'source') {
     document.getElementById('config-title').textContent = he ? '📚 לפי מקור' : '📚 By Source';
     if (!he) document.getElementById('sel-source').value = 'Exam A';
-    else     document.getElementById('sel-source-he').value = 'מילון';
+    else     document.getElementById('sel-source-he').value = "בחינה לדוגמא גרסה א'";
     showScreen('config');
   }
 }
