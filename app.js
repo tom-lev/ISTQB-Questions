@@ -1,5 +1,3 @@
-// ========== Main App JS ==========
-
 // ── Exam source links (Hebrew) ──
 const EXAM_LINKS = {
   "בחינה לדוגמא גרסה א'": {
@@ -484,7 +482,9 @@ function beginQuiz() {
     ? document.getElementById('sel-source-he').value
     : document.getElementById('sel-source').value;
   const klevel = document.getElementById('sel-klevel').value;
-  const count = parseInt(document.getElementById('rng-count').value);
+  const rng = document.getElementById('rng-count');
+  const count = parseInt(rng.value);
+  const useAll = count >= parseInt(rng.max);
   const order = document.getElementById('sel-order').value;
   let pool = src === 'all' ? ACTIVE_Q : ACTIVE_Q.filter(q => q.src === src);
   if (klevel !== 'all') pool = pool.filter(q => (q.k_level || q.k) === klevel);
@@ -493,15 +493,19 @@ function beginQuiz() {
     return;
   }
   if (order === 'shuffle') pool = shuffle(pool);
-  runQuiz(pool.slice(0, count));
+  runQuiz(useAll ? pool : pool.slice(0, count));
 }
 
 function runQuiz(questions) {
   SESSION = { questions, idx: 0, correct: 0, wrong: 0, skipped: 0, answers: [], mode: SESSION.mode };
   clearSpeedTimer();
+  clearExamTimer();
   showScreen('quiz');
   // Show/hide speed timer bar
   document.getElementById('speed-timer-wrap').classList.toggle('hidden', !SPEED_MODE);
+  // Show/hide exam timer
+  const examTimerWrap = document.getElementById('exam-timer-wrap');
+  if (examTimerWrap) examTimerWrap.classList.toggle('hidden', SESSION.mode !== 'exam');
   renderQuestion();
 }
 
@@ -565,6 +569,8 @@ function renderQuestion() {
 
   // Start speed timer if in speed mode
   if (SPEED_MODE) startSpeedTimer();
+  // Start exam timer if in exam mode (only on first question)
+  if (SESSION.mode === 'exam' && SESSION.idx === 0) startExamTimer();
 }
 
 function selectOption(idx) {
@@ -634,6 +640,7 @@ function confirmQuit() {
 }
 
 function showResults() {
+  clearExamTimer();
   showScreen('results');
   const total = SESSION.questions.length;
   const pct = Math.round((SESSION.correct / total) * 100);
@@ -884,6 +891,53 @@ function clearSpeedTimer() {
   if (SPEED_TIMER) { clearTimeout(SPEED_TIMER); SPEED_TIMER = null; }
   const fill = document.getElementById('speed-timer-fill');
   if (fill) { fill.style.transition = 'none'; fill.style.width = '100%'; }
+}
+
+// ── Exam Mode Countdown Timer (60 min) ──
+let EXAM_TIMER_INTERVAL = null;
+let EXAM_TIMER_SECONDS  = 0;
+
+function startExamTimer() {
+  clearExamTimer();
+  EXAM_TIMER_SECONDS = 60 * 60;
+  const display = document.getElementById('exam-timer-display');
+  const fill    = document.getElementById('exam-timer-fill');
+  if (fill) { fill.style.transition = 'none'; fill.style.width = '100%'; }
+
+  function tick() {
+    EXAM_TIMER_SECONDS--;
+    if (display) {
+      const m = Math.floor(EXAM_TIMER_SECONDS / 60);
+      const s = EXAM_TIMER_SECONDS % 60;
+      display.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      if (EXAM_TIMER_SECONDS <= 300) {
+        display.style.color = 'var(--error)';
+        if (fill) fill.style.background = 'var(--error)';
+      } else if (EXAM_TIMER_SECONDS <= 600) {
+        display.style.color = 'var(--warning)';
+        if (fill) fill.style.background = 'var(--warning)';
+      }
+    }
+    if (fill) {
+      fill.style.transition = 'width 1s linear';
+      fill.style.width = (EXAM_TIMER_SECONDS / 3600 * 100) + '%';
+    }
+    if (EXAM_TIMER_SECONDS <= 0) {
+      clearExamTimer();
+      const he = CURRENT_LANG === 'he';
+      alert(he ? '\u23F0 \u05d4\u05d6\u05de\u05df \u05e0\u05d2\u05de\u05e8! 60 \u05d3\u05e7\u05d5\u05ea \u05d7\u05dc\u05e4\u05d5.' : "\u23F0 Time's up! 60 minutes have elapsed.");
+      showResults();
+    }
+  }
+  EXAM_TIMER_INTERVAL = setInterval(tick, 1000);
+}
+
+function clearExamTimer() {
+  if (EXAM_TIMER_INTERVAL) { clearInterval(EXAM_TIMER_INTERVAL); EXAM_TIMER_INTERVAL = null; }
+  const display = document.getElementById('exam-timer-display');
+  const fill    = document.getElementById('exam-timer-fill');
+  if (display) { display.textContent = '60:00'; display.style.color = 'var(--accent)'; }
+  if (fill)    { fill.style.transition = 'none'; fill.style.width = '100%'; fill.style.background = 'linear-gradient(90deg,var(--accent),#9c94ff)'; }
 }
 
 function updateSavedPage() {

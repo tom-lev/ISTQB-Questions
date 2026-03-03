@@ -154,7 +154,7 @@
         <span class="range-val" id="lbl-count">20</span>
       </div>
       <input type="range" id="rng-count" min="5" max="40" value="20" step="5"
-             oninput="document.getElementById('lbl-count').textContent=this.value">
+             oninput="const v=parseInt(this.value);document.getElementById('lbl-count').textContent=(v>=parseInt(this.max)?'\u221e \u05d4\u05db\u05dc':v)">
     </div>
 
     <div class="field" id="field-order">
@@ -186,6 +186,14 @@
   <!-- Speed mode timer bar -->
   <div id="speed-timer-wrap" class="hidden" style="height:4px;background:var(--border);border-radius:100px;overflow:hidden;margin:-0.5rem 0 0.5rem">
     <div id="speed-timer-fill" style="height:100%;width:100%;background:linear-gradient(90deg,var(--success),var(--warning),var(--error));border-radius:100px;transition:width 1s linear"></div>
+  </div>
+  <!-- Exam mode countdown timer -->
+  <div id="exam-timer-wrap" class="hidden" style="display:flex;align-items:center;gap:0.7rem;margin:-0.5rem 0 0.5rem;padding:0.5rem 1rem;background:rgba(108,99,255,0.08);border:1px solid rgba(108,99,255,0.2);border-radius:10px">
+    <span style="font-size:1.1rem">&#9201;</span>
+    <div style="flex:1;height:6px;background:var(--border);border-radius:100px;overflow:hidden">
+      <div id="exam-timer-fill" style="height:100%;width:100%;background:linear-gradient(90deg,var(--accent),#9c94ff);border-radius:100px;transition:width 1s linear"></div>
+    </div>
+    <span id="exam-timer-display" style="font-family:'Space Mono',monospace;font-size:1rem;font-weight:700;color:var(--accent);min-width:3.5rem;text-align:right">60:00</span>
   </div>
 
   <div class="q-card" id="q-card">
@@ -500,7 +508,6 @@
 </button>
 
 <!-- Quiz Logic -->
-
 
 <script src="app.js"></script>
 <script type="module" src="firebase.js"></script>
