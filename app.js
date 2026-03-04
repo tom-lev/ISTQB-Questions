@@ -1027,7 +1027,7 @@ function updateSavedPage() {
     div.className = 'saved-item';
     div.innerHTML = `
       <div class="saved-item-header">
-        <div class="saved-item-q">${q.q}</div>
+        <div class="saved-item-q" onclick="openQModal(${idx})" style="cursor:pointer" title="לחץ לתצוגה מלאה">${q.q}</div>
         <div class="saved-item-actions">
           ${isStarred ? `<button class="btn-unstar" title="הסר כוכב" onclick="removeStar(${idx}, this)">⭐</button>` : `<span style="color:var(--muted);font-size:0.9rem;padding:0.2rem">☆</span>`}
           <button title="הסר מהרשימה" onclick="removeFromSaved(${idx}, this.closest('.saved-item'))" style="font-size:0.85rem">✕</button>
@@ -1362,5 +1362,56 @@ function fcShowAll() {
 }
 
 // ── END FLASHCARDS ───────────────────────────────────────────────────────────
+
+
+// ── Question Preview Modal ──
+function openQModal(idx) {
+  const q = ACTIVE_Q[idx];
+  if (!q) return;
+  const he = CURRENT_LANG === 'he';
+  const letters = he ? ['א','ב','ג','ד','ה','ו'] : ['A','B','C','D','E','F'];
+
+  // Meta tags
+  const metaEl = document.getElementById('qm-meta');
+  metaEl.innerHTML = `
+    ${q.src  ? `<span class="tag tag-src">${q.src}</span>` : ''}
+    ${(q.k_level||q.k) ? `<span class="tag tag-k">${q.k_level||q.k}</span>` : ''}
+    ${q.lo   ? `<span class="tag tag-lo">${q.lo}</span>` : ''}
+  `;
+
+  // Question text (use formatQuestion for proper rendering)
+  document.getElementById('qm-text').innerHTML = formatQuestion(q.q);
+
+  // Options
+  const optsEl = document.getElementById('qm-options');
+  optsEl.innerHTML = q.opts.map((opt, i) => `
+    <div class="q-modal-option ${i === q.ans ? 'correct' : ''}">
+      <span class="opt-letter">${letters[i]}</span>
+      <span class="opt-text">${opt}</span>
+    </div>
+  `).join('');
+
+  // Explanation
+  const expEl = document.getElementById('qm-exp');
+  if (q.exp) {
+    expEl.classList.remove('hidden');
+    expEl.innerHTML = `<strong>${he ? 'הסבר' : 'Explanation'}</strong>${q.exp}`;
+  } else {
+    expEl.classList.add('hidden');
+  }
+
+  document.getElementById('q-preview-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeQModal(e) {
+  if (e && e.target !== document.getElementById('q-preview-modal')) return;
+  document.getElementById('q-preview-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeQModal();
+});
 
 loadQuestions(); // loads questions.json; init() fires only after auth resolves

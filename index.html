@@ -509,6 +509,17 @@
 
 <!-- Quiz Logic -->
 
+<!-- Question Preview Modal -->
+<div id="q-preview-modal" class="q-modal-overlay hidden" onclick="closeQModal(event)">
+  <div class="q-modal">
+    <button class="q-modal-close" onclick="closeQModal()">✕</button>
+    <div class="q-modal-meta" id="qm-meta"></div>
+    <div class="q-modal-text" id="qm-text"></div>
+    <div class="q-modal-options" id="qm-options"></div>
+    <div class="q-modal-exp hidden" id="qm-exp"></div>
+  </div>
+</div>
+
 <script src="app.js"></script>
 <script type="module" src="firebase.js"></script>
 </body>
