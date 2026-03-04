@@ -767,35 +767,68 @@ function retryWrong() {
 }
 
 function formatQuestion(text) {
-  if (!text.includes('/')) return formatInlineList(text);
-  const parts = text.split(/\s*\/\s*/);
-  const intro_and_nums = parts[0];
-  const letters_part = parts[1] || '';
-  const introMatch = intro_and_nums.match(/^(.*?)(?=\s*1\.)/s);
-  const intro = introMatch ? introMatch[1].trim() : '';
-  const numItems = [...intro_and_nums.matchAll(/(\d+)\.\s*(.*?)(?=\s+\d+\.|$)/g)]
-    .map(m => `<li>${m[2].trim()}</li>`).join('');
-  const letItems = letters_part
-    ? [...letters_part.matchAll(/([A-Z])\.\s*(.*?)(?=\s+[A-Z]\.|$)/g)]
-        .map(m => `<li><strong>${m[1]}.</strong> ${m[2].trim()}</li>`).join('')
-    : '';
-  let html = '';
-  if (intro) html += `<span style="display:block;margin-bottom:0.6rem">${intro}</span>`;
-  if (numItems) html += `<ol style="margin:0.4rem 0 0.6rem 1.4rem;line-height:1.8">${numItems}</ol>`;
-  if (letItems) html += `<ul style="margin:0 0 0 1.4rem;line-height:1.8;list-style:none">${letItems}</ul>`;
-  return html || text;
-}
+  if (!text) return '';
 
-function formatInlineList(text) {
+  function escH(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  if (text.includes('\n')) {
+    const lines = text.split('\n');
+    let html = '';
+    let listItems = [];
+    let listType = null;
+
+    function flushList() {
+      if (!listItems.length) return;
+      if (listType === 'bullet') {
+        html += `<ul style="margin:0.4rem 0 0.5rem 1.2rem;line-height:1.9">${listItems.map(li=>`<li>${li}</li>`).join('')}</ul>`;
+      } else if (listType === 'numbered') {
+        html += `<ol style="margin:0.4rem 0 0.5rem 1.4rem;line-height:1.9">${listItems.map(li=>`<li>${li}</li>`).join('')}</ol>`;
+      } else {
+        html += `<ul style="margin:0.4rem 0 0.5rem 0;line-height:1.9;list-style:none;padding:0">${listItems.map(li=>`<li style="padding:0.1rem 0">${li}</li>`).join('')}</ul>`;
+      }
+      listItems = []; listType = null;
+    }
+
+    for (let line of lines) {
+      line = line.trim();
+      if (!line) { flushList(); continue; }
+      const bul  = line.match(/^[•\-–]\s+(.+)/);
+      const rom  = line.match(/^(i{1,3}v?|vi{0,3}|ix|x)\.\s+(.+)/i);
+      const alph = line.match(/^([a-eA-E])\)\s+(.+)/);
+      const num  = line.match(/^\d+\.\s+(.+)/);
+      if      (bul)  { if (listType && listType!=='bullet')   flushList(); listType='bullet';   listItems.push(bul[1]); }
+      else if (rom)  { if (listType && listType!=='roman')    flushList(); listType='roman';    listItems.push(`<strong>${rom[1]}.</strong> ${rom[2]}`); }
+      else if (alph) { if (listType && listType!=='alpha')    flushList(); listType='alpha';    listItems.push(`<strong>${alph[1]})</strong> ${alph[2]}`); }
+      else if (num)  { if (listType && listType!=='numbered') flushList(); listType='numbered'; listItems.push(num[1]); }
+      else if (line.startsWith('|')) { flushList(); html += `<code style="display:block;font-size:0.75rem;color:var(--muted);margin:0.2rem 0;white-space:pre-wrap;font-family:'Space Mono',monospace">${escH(line)}</code>`; }
+      else           { flushList(); html += `<span style="display:block;margin-bottom:0.35rem">${line}</span>`; }
+    }
+    flushList();
+    return html || text;
+  }
+
+  if (text.includes('/')) {
+    const parts = text.split(/\s*\/\s*/);
+    const intro_and_nums = parts[0];
+    const letters_part = parts[1] || '';
+    const introMatch = intro_and_nums.match(/^(.*?)(?=\s*1\.)/s);
+    const intro = introMatch ? introMatch[1].trim() : '';
+    const numItems = [...intro_and_nums.matchAll(/(\d+)\.\s*(.*?)(?=\s+\d+\.|$)/g)].map(m=>`<li>${m[2].trim()}</li>`).join('');
+    const letItems = letters_part ? [...letters_part.matchAll(/([A-Z])\.\s*(.*?)(?=\s+[A-Z]\.|$)/g)].map(m=>`<li><strong>${m[1]}.</strong> ${m[2].trim()}</li>`).join('') : '';
+    let html = '';
+    if (intro) html += `<span style="display:block;margin-bottom:0.6rem">${intro}</span>`;
+    if (numItems) html += `<ol style="margin:0.4rem 0 0.6rem 1.4rem;line-height:1.8">${numItems}</ol>`;
+    if (letItems) html += `<ul style="margin:0 0 0 1.4rem;line-height:1.8;list-style:none">${letItems}</ul>`;
+    if (html) return html;
+  }
+
   if (/\s1\.\s/.test(text)) {
     const introMatch = text.match(/^(.*?)(?=\s*1\.)/s);
     const intro = introMatch ? introMatch[1].trim() : '';
-    const items = [...text.matchAll(/(\d+)\.\s*(.*?)(?=\s+\d+\.|$)/g)]
-      .map(m => `<li>${m[2].trim()}</li>`).join('');
-    if (items) {
-      return `${intro ? `<span style="display:block;margin-bottom:0.5rem">${intro}</span>` : ''}<ol style="margin:0.3rem 0 0 1.4rem;line-height:1.8">${items}</ol>`;
-    }
+    const items = [...text.matchAll(/(\d+)\.\s*(.*?)(?=\s+\d+\.|$)/g)].map(m=>`<li>${m[2].trim()}</li>`).join('');
+    if (items) return `${intro?`<span style="display:block;margin-bottom:0.5rem">${intro}</span>`:''}<ol style="margin:0.3rem 0 0 1.4rem;line-height:1.8">${items}</ol>`;
   }
+
   return text;
 }
 
