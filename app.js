@@ -86,6 +86,7 @@ window._currentUser     = null;
 
 // Called whenever data changes
 let _pendingPersist = false;
+let _lastSaveTime = 0;
 async function persistData() {
   if (!window._fbSaveUserData || !window._currentUser) {
     // Firebase not ready yet — mark dirty, it will save once auth is ready
@@ -93,6 +94,7 @@ async function persistData() {
     return;
   }
   _pendingPersist = false;
+  _lastSaveTime = Date.now();
   console.log('[PERSIST] Saving starredIds:', JSON.stringify(STARRED_IDS));
   try {
     await window._fbSaveUserData({
@@ -110,16 +112,19 @@ async function persistData() {
 // Called after login — load cloud data directly into memory
 async function loadCloudData(data) {
   if (!data) return;
-  // Only load from cloud if we don't have unsaved local changes
-  if (!_pendingPersist) {
+  // Don't overwrite local data if we saved recently (within 10 seconds)
+  const recentlySaved = (Date.now() - _lastSaveTime) < 10000;
+  if (!_pendingPersist && !recentlySaved) {
     WRONG_IDS    = Array.isArray(data.wrongIds)    ? data.wrongIds    : [];
     BEST         = data.best                        ? data.best        : null;
     ANSWERED_IDS = Array.isArray(data.answeredIds) ? data.answeredIds : [];
     UNIQUE_IDS   = Array.isArray(data.uniqueIds)   ? data.uniqueIds   : [];
     STARRED_IDS  = Array.isArray(data.starredIds)  ? data.starredIds  : [];
     NOTES        = (data.notes && typeof data.notes === 'object') ? data.notes : {};
+    console.log('[LOAD] Loaded from cloud');
   } else {
-    // We have local changes that haven't been saved yet — persist them now
+    // Local changes exist or we just saved — push local state to cloud instead
+    console.log('[LOAD] Skipping cloud load, recentlySaved:', recentlySaved, 'pending:', _pendingPersist);
     await persistData();
   }
 
