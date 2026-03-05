@@ -912,14 +912,20 @@ function formatQuestion(text) {
       const rows = tableRows;
       tableRows = []; inTable = false;
       const parseRow = r => r.split('|').map(c=>c.trim()).filter((_,i,a)=>i>0&&i<a.length-1);
-      let tableHtml = '<table style="border-collapse:collapse;width:100%;margin:0.6rem 0;font-size:0.85rem">';
+      let tableHtml = '<table style="border-collapse:collapse;width:auto;margin:0.5rem 0;font-size:0.82rem;direction:rtl">';
       rows.forEach((row, ri) => {
         const cells = parseRow(row);
-        const tag = ri === 0 ? 'th' : 'td';
-        const style = ri === 0
-          ? 'background:var(--border);padding:0.35rem 0.6rem;border:1px solid var(--border);font-weight:600;text-align:center'
-          : 'padding:0.35rem 0.6rem;border:1px solid var(--border);text-align:center';
-        tableHtml += '<tr>' + cells.map(c=>`<${tag} style="${style}">${md2html(c)}</${tag}>`).join('') + '</tr>';
+        const isHeader = ri === 0;
+        const rowBg = isHeader ? 'var(--surface)' : (ri % 2 === 0 ? 'var(--surface)' : 'transparent');
+        tableHtml += `<tr style="background:${rowBg}">`;
+        cells.forEach(c => {
+          const tag = isHeader ? 'th' : 'td';
+          const style = isHeader
+            ? 'padding:0.3rem 0.8rem;border:1px solid var(--border);font-weight:700;text-align:center;color:var(--text);white-space:nowrap'
+            : 'padding:0.25rem 0.8rem;border:1px solid var(--border);text-align:center;white-space:nowrap';
+          tableHtml += `<${tag} style="${style}">${md2html(c)}</${tag}>`;
+        });
+        tableHtml += '</tr>';
       });
       tableHtml += '</table>';
       html += tableHtml;
