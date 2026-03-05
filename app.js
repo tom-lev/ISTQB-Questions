@@ -541,9 +541,9 @@ function renderQuestion() {
 
   const meta = document.getElementById('q-meta');
   meta.innerHTML = `<span class="tag tag-src">${q.src}</span>`;
+  if (q.q_num) meta.innerHTML += `<span class="tag tag-qnum">שאלה ${q.q_num}</span>`;
   if (q.k) meta.innerHTML += `<span class="tag tag-k">${q.k}</span>`;
   if (q.k_level) meta.innerHTML += `<span class="tag tag-k">${q.k_level}</span>`;
-  if (q.lo) meta.innerHTML += `<span class="tag tag-lo">${q.lo}</span>`;
   const examLinks = EXAM_LINKS[q.src];
   if (examLinks) {
     meta.innerHTML += `<a class="tag tag-link" href="${examLinks.questions}" target="_blank" rel="noopener">📄 שאלות</a>`;
@@ -583,12 +583,16 @@ function renderQuestion() {
     opts.appendChild(btn);
   });
   if (isMulti) {
-    const confirmBtn = document.createElement('button');
     const need = q.multi || q.ans.length;
+    const hint = document.createElement('div');
+    hint.className = 'multi-hint';
+    hint.textContent = CURRENT_LANG === 'he' ? 'בחרו שתי אפשרויות' : 'Select two options';
+    opts.insertBefore(hint, opts.firstChild);
+    const confirmBtn = document.createElement('button');
     confirmBtn.id = 'multi-confirm';
     confirmBtn.className = 'option multi-confirm';
     confirmBtn.disabled = true;
-    confirmBtn.textContent = CURRENT_LANG === 'he' ? `✓ אשר בחירה (${need})` : `✓ Confirm (${need})`;
+    confirmBtn.textContent = CURRENT_LANG === 'he' ? `✓ אשר בחירה` : `✓ Confirm`;
     confirmBtn.onclick = () => submitMultiAnswer(q);
     opts.appendChild(confirmBtn);
   }

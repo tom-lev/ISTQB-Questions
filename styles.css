@@ -432,7 +432,15 @@
 
   .tag-src  { background: rgba(108,99,255,0.15); color: var(--accent); }
   .tag-k    { background: rgba(255,209,102,0.15); color: var(--warning); }
-  .tag-lo   { background: rgba(67,233,123,0.1); color: var(--accent3); }
+  .tag-qnum { background: rgba(255,150,80,0.15); color: #ff9650; font-weight: 600; }
+  .multi-hint {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-align: center;
+    padding: 0.4rem 0;
+    letter-spacing: 0.03em;
+  }
 
   .tag-link {
     background: rgba(108,99,255,0.1);
