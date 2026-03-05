@@ -572,7 +572,7 @@ function renderQuestion() {
   _enLetters.slice(0, q.opts.length).forEach((letter, i) => {
     const btn = document.createElement('button');
     btn.className = 'option';
-    btn.innerHTML = `<span class="opt-letter">${_letters[i]}</span><span class="opt-text">${q.opts[i]}</span>`;
+    btn.innerHTML = `<span class="opt-letter">${_letters[i]}</span><span class="opt-text">${md2html(q.opts[i])}</span>`;
     btn.onclick = () => selectOption(i);
     opts.appendChild(btn);
   });
@@ -745,10 +745,10 @@ function buildReview() {
       answerLine = `<span style="color:var(--warning)">⊘ ${he ? 'דולג' : 'Skipped'}</span>`;
     } else {
       answerLine = `<span class="${a.correct ? 'review-correct' : 'review-wrong'}">
-        ${a.correct ? '✓' : '✗'} ${he ? 'תשובתך' : 'Your answer'}: ${letters[a.chosen] || '?'}) ${a.q.opts[a.chosen] || ''}
+        ${a.correct ? '✓' : '✗'} ${he ? 'תשובתך' : 'Your answer'}: ${letters[a.chosen] || '?'}) ${md2html(a.q.opts[a.chosen] || '')}
       </span>`;
       if (!a.correct) {
-        answerLine += ` &nbsp; <span class="review-correct">✓ ${he ? 'נכון' : 'Correct'}: ${letters[a.q.ans]}) ${a.q.opts[a.q.ans]}</span>`;
+        answerLine += ` &nbsp; <span class="review-correct">✓ ${he ? 'נכון' : 'Correct'}: ${letters[a.q.ans]}) ${md2html(a.q.opts[a.q.ans])}</span>`;
       }
     }
     div.innerHTML = `
@@ -764,6 +764,11 @@ function retryWrong() {
   const wqs = SESSION.answers.filter(a => !a.correct && !a.skipped).map(a => a.q);
   if (wqs.length === 0) return;
   runQuiz(shuffle(wqs));
+}
+
+function md2html(text) {
+  if (!text) return text;
+  return text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 }
 
 function formatQuestion(text) {
@@ -796,12 +801,12 @@ function formatQuestion(text) {
       const rom  = line.match(/^(i{1,3}v?|vi{0,3}|ix|x)\.\s+(.+)/i);
       const alph = line.match(/^([a-eA-E])\)\s+(.+)/);
       const num  = line.match(/^\d+\.\s+(.+)/);
-      if      (bul)  { if (listType && listType!=='bullet')   flushList(); listType='bullet';   listItems.push(bul[1]); }
-      else if (rom)  { if (listType && listType!=='roman')    flushList(); listType='roman';    listItems.push(`<strong>${rom[1]}.</strong> ${rom[2]}`); }
-      else if (alph) { if (listType && listType!=='alpha')    flushList(); listType='alpha';    listItems.push(`<strong>${alph[1]})</strong> ${alph[2]}`); }
-      else if (num)  { if (listType && listType!=='numbered') flushList(); listType='numbered'; listItems.push(num[1]); }
+      if      (bul)  { if (listType && listType!=='bullet')   flushList(); listType='bullet';   listItems.push(md2html(bul[1])); }
+      else if (rom)  { if (listType && listType!=='roman')    flushList(); listType='roman';    listItems.push(`<strong>${rom[1]}.</strong> ${md2html(rom[2])}`); }
+      else if (alph) { if (listType && listType!=='alpha')    flushList(); listType='alpha';    listItems.push(`<strong>${alph[1]})</strong> ${md2html(alph[2])}`); }
+      else if (num)  { if (listType && listType!=='numbered') flushList(); listType='numbered'; listItems.push(md2html(num[1])); }
       else if (line.startsWith('|')) { flushList(); html += `<code style="display:block;font-size:0.75rem;color:var(--muted);margin:0.2rem 0;white-space:pre-wrap;font-family:'Space Mono',monospace">${escH(line)}</code>`; }
-      else           { flushList(); html += `<span style="display:block;margin-bottom:0.35rem">${line}</span>`; }
+      else           { flushList(); html += `<span style="display:block;margin-bottom:0.35rem">${md2html(line)}</span>`; }
     }
     flushList();
     return html || text;
@@ -829,10 +834,8 @@ function formatQuestion(text) {
     if (items) return `${intro?`<span style="display:block;margin-bottom:0.5rem">${intro}</span>`:''}<ol style="margin:0.3rem 0 0 1.4rem;line-height:1.8">${items}</ol>`;
   }
 
-  return text;
-}
-
-function formatExplanation(text) {
+  return md2html(text);
+}(text) {
   const parts = text.split(/(?=\b[a-e]\)\s)/i).filter(p => p.trim());
   if (parts.length <= 1) return `<span class="exp-line">${text}</span>`;
   return parts.map(part => {
@@ -1038,7 +1041,7 @@ function updateSavedPage() {
         ${q.lo ? `<span class="tag tag-lo" style="font-size:0.6rem">${q.lo}</span>` : ''}
         ${(q.k_level||q.k) ? `<span class="tag tag-k" style="font-size:0.6rem">${q.k_level||q.k}</span>` : ''}
       </div>
-      <div class="saved-item-answer">✓ ${he ? 'תשובה נכונה' : 'Answer'}: ${ansLetter}) ${ansText}</div>
+      <div class="saved-item-answer">✓ ${he ? 'תשובה נכונה' : 'Answer'}: ${ansLetter}) ${md2html(ansText)}</div>
       <div class="saved-item-note">
         <div class="saved-item-note-label">📝 ${he ? 'הערה' : 'Note'}</div>
         <textarea placeholder="${he ? 'הוסף הערה...' : 'Add a note...'}" data-idx="${idx}" onblur="saveNoteFromPage(this)">${noteVal}</textarea>
@@ -1387,7 +1390,7 @@ function openQModal(idx) {
   optsEl.innerHTML = q.opts.map((opt, i) => `
     <div class="q-modal-option ${i === q.ans ? 'correct' : ''}">
       <span class="opt-letter">${letters[i]}</span>
-      <span class="opt-text">${opt}</span>
+      <span class="opt-text">${md2html(opt)}</span>
     </div>
   `).join('');
 
