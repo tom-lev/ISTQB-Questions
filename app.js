@@ -569,13 +569,29 @@ function renderQuestion() {
   const _heLetters = ['א','ב','ג','ד','ה','ו'];
   const _enLetters = ['A','B','C','D','E','F'];
   const _letters = CURRENT_LANG === 'he' ? _heLetters : _enLetters;
+  const isMulti = Array.isArray(q.ans);
   _enLetters.slice(0, q.opts.length).forEach((letter, i) => {
     const btn = document.createElement('button');
     btn.className = 'option';
+    btn.dataset.idx = i;
     btn.innerHTML = `<span class="opt-letter">${_letters[i]}</span><span class="opt-text">${q.opts[i]}</span>`;
-    btn.onclick = () => selectOption(i);
+    if (isMulti) {
+      btn.onclick = () => toggleMultiOption(btn, q);
+    } else {
+      btn.onclick = () => selectOption(i);
+    }
     opts.appendChild(btn);
   });
+  if (isMulti) {
+    const confirmBtn = document.createElement('button');
+    const need = q.multi || q.ans.length;
+    confirmBtn.id = 'multi-confirm';
+    confirmBtn.className = 'option multi-confirm';
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = CURRENT_LANG === 'he' ? `✓ אשר בחירה (${need})` : `✓ Confirm (${need})`;
+    confirmBtn.onclick = () => submitMultiAnswer(q);
+    opts.appendChild(confirmBtn);
+  }
 
   const exp = document.getElementById('explanation');
   exp.classList.add('hidden');
@@ -593,6 +609,71 @@ function renderQuestion() {
   if (SPEED_MODE) startSpeedTimer();
   // Start exam timer if in exam mode (only on first question)
   if (SESSION.mode === 'exam' && SESSION.idx === 0) startExamTimer();
+}
+
+function toggleMultiOption(btn, q) {
+  const need = q.multi || q.ans.length;
+  const allBtns = document.querySelectorAll('.option:not(.multi-confirm)');
+  if (btn.classList.contains('selected')) {
+    btn.classList.remove('selected');
+  } else {
+    const selected = document.querySelectorAll('.option.selected');
+    if (selected.length >= need) return; // already at max
+    btn.classList.add('selected');
+  }
+  const confirmBtn = document.getElementById('multi-confirm');
+  if (confirmBtn) {
+    const selected = document.querySelectorAll('.option.selected');
+    confirmBtn.disabled = selected.length !== need;
+  }
+}
+
+function submitMultiAnswer(q) {
+  const selectedBtns = document.querySelectorAll('.option.selected');
+  const chosen = Array.from(selectedBtns).map(b => parseInt(b.dataset.idx)).sort((a,b)=>a-b);
+  const correct = [...q.ans].sort((a,b)=>a-b);
+  const isCorrect = JSON.stringify(chosen) === JSON.stringify(correct);
+
+  const allBtns = document.querySelectorAll('.option:not(.multi-confirm)');
+  allBtns.forEach(b => b.classList.add('disabled'));
+  const confirmBtn = document.getElementById('multi-confirm');
+  if (confirmBtn) confirmBtn.classList.add('disabled');
+
+  // Mark correct/wrong
+  allBtns.forEach(b => {
+    const i = parseInt(b.dataset.idx);
+    const wasChosen = chosen.includes(i);
+    const isAns = correct.includes(i);
+    if (wasChosen && isAns)  b.classList.add('correct');
+    else if (wasChosen)       b.classList.add('wrong');
+    else if (isAns)           b.classList.add('correct');
+  });
+
+  clearSpeedTimer();
+  const gIdx = ACTIVE_Q.indexOf(q);
+  if (gIdx >= 0) {
+    ANSWERED_IDS.push(gIdx);
+    if (!UNIQUE_IDS.includes(gIdx)) UNIQUE_IDS.push(gIdx);
+  }
+  if (isCorrect) {
+    SESSION.correct++;
+    SESSION.answers.push({ q, chosen: chosen[0], correct: true, chosenMulti: chosen });
+  } else {
+    SESSION.wrong++;
+    SESSION.answers.push({ q, chosen: chosen[0], correct: false, chosenMulti: chosen });
+    if (gIdx >= 0 && !WRONG_IDS.includes(gIdx)) WRONG_IDS.push(gIdx);
+  }
+
+  persistData();
+  updateAnsweredStats();
+
+  if (q.exp) {
+    const exp = document.getElementById('explanation');
+    exp.innerHTML = `<strong>${CURRENT_LANG === 'he' ? 'הסבר' : 'Explanation'}</strong>${formatExplanation(q.exp)}`;
+    exp.classList.remove('hidden');
+  }
+  document.getElementById('btn-skip').classList.add('hidden');
+  document.getElementById('btn-next').classList.remove('hidden');
 }
 
 function selectOption(idx) {

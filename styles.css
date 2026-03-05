@@ -534,6 +534,27 @@
 
   .option.correct  { border-color: var(--success); background: rgba(67,233,123,0.1); }
   .option.wrong    { border-color: var(--error); background: rgba(255,101,132,0.1); }
+  .option.selected { border-color: var(--accent); background: rgba(108,99,255,0.12); }
+  .option.selected .opt-letter { background: var(--accent); color: white; }
+  .option.multi-confirm {
+    justify-content: center;
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+    font-weight: 600;
+    margin-top: 0.3rem;
+  }
+  .option.multi-confirm:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: var(--border);
+    border-color: var(--border);
+    color: var(--muted);
+  }
+  .option.multi-confirm:hover:not(:disabled):not(.disabled) {
+    background: var(--accent-hover, #5a52e0);
+    border-color: var(--accent-hover, #5a52e0);
+  }
 
   .opt-letter {
     font-family: 'Space Mono', monospace;
