@@ -95,7 +95,12 @@ async function persistData() {
   }
   _pendingPersist = false;
   _lastSaveTime = Date.now();
+  // Save to sessionStorage immediately (survives hard refresh)
+  const payload = { wrongIds: WRONG_IDS, best: BEST, answeredIds: ANSWERED_IDS,
+                    uniqueIds: UNIQUE_IDS, starredIds: STARRED_IDS, notes: NOTES };
+  try { sessionStorage.setItem('istqb_session_data', JSON.stringify(payload)); } catch(e) {}
   console.log('[PERSIST] Saving starredIds:', JSON.stringify(STARRED_IDS));
+  if (!window._fbSaveUserData || !window._currentUser) { _pendingPersist = true; return; }
   try {
     await window._fbSaveUserData({
       wrongIds:    WRONG_IDS,
@@ -112,21 +117,34 @@ async function persistData() {
 // Called after login — load cloud data directly into memory
 async function loadCloudData(data) {
   if (!data) return;
-  // Don't overwrite local data if we saved recently (within 10 seconds)
-  const recentlySaved = (Date.now() - _lastSaveTime) < 10000;
-  if (!_pendingPersist && !recentlySaved) {
-    WRONG_IDS    = Array.isArray(data.wrongIds)    ? data.wrongIds    : [];
-    BEST         = data.best                        ? data.best        : null;
-    ANSWERED_IDS = Array.isArray(data.answeredIds) ? data.answeredIds : [];
-    UNIQUE_IDS   = Array.isArray(data.uniqueIds)   ? data.uniqueIds   : [];
-    STARRED_IDS  = Array.isArray(data.starredIds)  ? data.starredIds  : [];
-    NOTES        = (data.notes && typeof data.notes === 'object') ? data.notes : {};
-    console.log('[LOAD] Loaded from cloud');
-  } else {
-    // Local changes exist or we just saved — push local state to cloud instead
-    console.log('[LOAD] Skipping cloud load, recentlySaved:', recentlySaved, 'pending:', _pendingPersist);
-    await persistData();
+  // Use sessionStorage as the source of truth within a browser session.
+  // If sessionStorage has data, it means the user already interacted this session
+  // and we should use that instead of the (possibly stale) Firestore snapshot.
+  const sessionKey = 'istqb_session_data';
+  const sessionRaw = sessionStorage.getItem(sessionKey);
+  if (sessionRaw) {
+    try {
+      const local = JSON.parse(sessionRaw);
+      WRONG_IDS    = local.wrongIds    ?? [];
+      BEST         = local.best        ?? null;
+      ANSWERED_IDS = local.answeredIds ?? [];
+      UNIQUE_IDS   = local.uniqueIds   ?? [];
+      STARRED_IDS  = local.starredIds  ?? [];
+      NOTES        = local.notes       ?? {};
+      console.log('[LOAD] Restored from sessionStorage, starredIds count:', STARRED_IDS.length);
+      // Push to Firestore in case it's ahead
+      await persistData();
+      return;
+    } catch(e) { sessionStorage.removeItem(sessionKey); }
   }
+  // First load this session — use Firestore data
+  WRONG_IDS    = Array.isArray(data.wrongIds)    ? data.wrongIds    : [];
+  BEST         = data.best                        ? data.best        : null;
+  ANSWERED_IDS = Array.isArray(data.answeredIds) ? data.answeredIds : [];
+  UNIQUE_IDS   = Array.isArray(data.uniqueIds)   ? data.uniqueIds   : [];
+  STARRED_IDS  = Array.isArray(data.starredIds)  ? data.starredIds  : [];
+  NOTES        = (data.notes && typeof data.notes === 'object') ? data.notes : {};
+  console.log('[LOAD] Loaded from Firestore, starredIds count:', STARRED_IDS.length);
 
   const bestEl = document.getElementById('stat-best');
   if (bestEl) bestEl.textContent = BEST ? BEST + '%' : '—';
