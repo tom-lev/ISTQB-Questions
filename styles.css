@@ -618,7 +618,7 @@
 
   .exp-intro {
     margin-bottom: 0.85rem;
-    color: #c8c8e0;
+    color: #e0e0f0;
     line-height: 1.7;
     padding-bottom: 0.75rem;
     border-bottom: 1px solid rgba(108,99,255,0.15);
@@ -672,11 +672,11 @@
   .exp-body {
     flex: 1;
     line-height: 1.6;
-    color: #c8c8e0;
+    color: #e0e0f0;
   }
 
   .exp-row-correct .exp-body {
-    color: #c8c8e0;
+    color: #e0e0f0;
   }
 
   .exp-tag {
