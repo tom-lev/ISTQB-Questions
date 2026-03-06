@@ -1,4 +1,4 @@
-  :root {
+:root {
     --bg: #0a0a0f;
     --surface: #111118;
     --card: #16161f;
@@ -600,6 +600,8 @@
     line-height: 1.65;
     color: #b0b0c8;
     animation: fadeUp 0.25s ease;
+    direction: ltr;
+    text-align: left;
   }
 
   .explanation strong {
@@ -609,15 +611,91 @@
     text-transform: uppercase;
     letter-spacing: 0.08em;
     display: block;
-    margin-bottom: 0.6rem;
+    margin-bottom: 0.75rem;
+    direction: rtl;
+    text-align: right;
   }
 
+  .exp-intro {
+    margin-bottom: 0.85rem;
+    color: #c8c8e0;
+    line-height: 1.7;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(108,99,255,0.15);
+  }
+
+  .exp-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .exp-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid transparent;
+    transition: background 0.15s;
+  }
+
+  .exp-row-correct {
+    background: rgba(45,212,160,0.08);
+    border-color: rgba(45,212,160,0.25);
+  }
+
+  .exp-letter {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    min-width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: rgba(108,99,255,0.15);
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .exp-row-correct .exp-letter {
+    background: rgba(45,212,160,0.15);
+    color: var(--success);
+  }
+
+  .exp-body {
+    flex: 1;
+    line-height: 1.6;
+    color: #b0b0c8;
+  }
+
+  .exp-row-correct .exp-body {
+    color: #d0f0e8;
+  }
+
+  .exp-tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    color: var(--success);
+    background: rgba(45,212,160,0.12);
+    padding: 2px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Legacy fallback */
   .explanation .exp-line {
     display: block;
     padding: 0.25rem 0;
     border-bottom: 1px solid rgba(108,99,255,0.08);
   }
-
   .explanation .exp-line:last-child { border-bottom: none; }
   .explanation .exp-correct { color: var(--success); }
 
