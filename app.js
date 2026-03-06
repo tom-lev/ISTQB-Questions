@@ -87,15 +87,20 @@ window._currentUser     = null;
 // Called whenever data changes
 let _pendingPersist = false;
 let _lastSaveTime = 0;
+window._cloudDataReady = false; // set to true once Firestore user data is loaded
+
 async function persistData() {
   if (!window._fbSaveUserData || !window._currentUser) {
-    // Firebase not ready yet — mark dirty, it will save once auth is ready
+    _pendingPersist = true;
+    return;
+  }
+  // Don't overwrite Firestore with empty data before cloud data has loaded
+  if (!window._cloudDataReady) {
     _pendingPersist = true;
     return;
   }
   _pendingPersist = false;
   _lastSaveTime = Date.now();
-  // Save to sessionStorage immediately (survives hard refresh)
   const payload = { wrongIds: WRONG_IDS, best: BEST, answeredIds: ANSWERED_IDS,
                     uniqueIds: UNIQUE_IDS, starredIds: STARRED_IDS, notes: NOTES };
   try { sessionStorage.setItem('istqb_session_data', JSON.stringify(payload)); } catch(e) {}
@@ -146,11 +151,16 @@ async function loadCloudData(data) {
   NOTES        = (data.notes && typeof data.notes === 'object') ? data.notes : {};
   console.log('[LOAD] Loaded from Firestore, starredIds count:', STARRED_IDS.length);
 
+  window._cloudDataReady = true;
+
   const bestEl = document.getElementById('stat-best');
   if (bestEl) bestEl.textContent = BEST ? BEST + '%' : '—';
   updateWrongCount();
   updateAnsweredStats();
   updateStarredCount();
+
+  // Flush any saves that were blocked while waiting for cloud data
+  if (_pendingPersist) persistData();
 }
 
 async function loadQuestions() {
