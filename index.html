@@ -200,7 +200,10 @@
     <div class="q-meta" id="q-meta"></div>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:0.8rem">
       <div class="q-text" id="q-text" style="flex:1"></div>
-      <button id="btn-star" onclick="toggleStar()" title="סמן לחזרה" style="background:transparent;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);padding:0.2rem;flex-shrink:0;transition:all 0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">☆</button>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;flex-shrink:0">
+        <button id="btn-star" onclick="toggleStar()" title="סמן לחזרה" style="background:transparent;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);padding:0.2rem;transition:all 0.2s" onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'">☆</button>
+        <button id="btn-report" onclick="reportQuestion()" title="דווח על בעיה" style="background:transparent;border:none;font-size:0.9rem;cursor:pointer;color:var(--muted);padding:0.1rem;transition:all 0.2s;line-height:1" onmouseover="this.style.color='#ff6b6b'" onmouseout="this.style.color='var(--muted)'">⚑</button>
+      </div>
     </div>
 
     <!-- Personal note — always visible -->
@@ -215,7 +218,6 @@
   <div class="q-footer">
     <button class="btn btn-ghost" id="btn-skip" onclick="skipQuestion()">דלג ←</button>
     <button class="btn btn-primary hidden" id="btn-next" onclick="nextQuestion()">הבא ←</button>
-    <button class="btn btn-report" id="btn-report" onclick="reportQuestion()" title="דווח על בעיה בשאלה">⚑ דווח</button>
   </div>
 </div>
 
