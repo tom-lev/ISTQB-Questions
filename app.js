@@ -1040,6 +1040,9 @@ function formatQuestion(text) {
 }
 
 function formatExplanation(text) {
+  // If exp is rich HTML (saved by admin Quill editor) — use as-is
+  if (/<[a-z][\s\S]*>/i.test(text)) return text;
+  // Legacy plain-text format
   const parts = text.split(/(?=\b[a-e]\)\s)/i).filter(p => p.trim());
   if (parts.length <= 1) return `<span class="exp-line">${text}</span>`;
   return parts.map(part => {
