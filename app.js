@@ -188,13 +188,12 @@ async function loadQuestions() {
 }
 
 // ── Load admin edits from Firestore and apply over the base JSON ──
-async function applyAdminEdits() {
+async function applyAdminEdits(retryCount = 0) {
   try {
     const { getFirestore, collection, getDocs } =
       await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
-    // Re-use the already-initialised app via a global reference set by firebase.js
     const db = window._firestoreDb;
-    if (!db) return; // firebase not loaded yet — skip silently
+    if (!db) return;
 
     const snap = await getDocs(collection(db, "editedQuestions"));
     if (snap.empty) return;
@@ -210,7 +209,13 @@ async function applyAdminEdits() {
     });
     console.log(`[ADMIN] Applied ${snap.size} edited question(s) from Firestore`);
   } catch(e) {
-    console.warn('[ADMIN] Could not load edits from Firestore:', e);
+    if (retryCount < 3) {
+      const delay = (retryCount + 1) * 2000; // 2s, 4s, 6s
+      console.warn(`[ADMIN] Firestore unavailable, retrying in ${delay/1000}s...`);
+      setTimeout(() => applyAdminEdits(retryCount + 1), delay);
+    } else {
+      console.warn('[ADMIN] Could not load edits from Firestore after retries:', e);
+    }
   }
 }
 
@@ -814,14 +819,14 @@ function reportQuestion() {
   const q = SESSION.questions?.[SESSION.idx];
   if (!q) return;
 
-  const qIndex  = ACTIVE_Q.indexOf(q) + 1;
-  const qText   = q.q?.replace(/<[^>]*>/g, '').trim() || '';
-  const src     = q.src  || '';
-  const qNum    = q.q_num || '';
-  const lo      = q.lo   || '';
+  const qIndex = ACTIVE_Q.indexOf(q) + 1;
+  const qText  = q.q?.replace(/<[^>]*>/g, '').trim() || '';
+  const src    = q.src   || '';
+  const qNum   = q.q_num || '';
+  const lo     = q.lo    || '';
 
-  const subject = encodeURIComponent(`[ISTQB] בעיה בשאלה ${qIndex}${qNum ? ' (מס\' ' + qNum + ')' : ''}`);
-  const body    = encodeURIComponent(
+  const subject = `[ISTQB] בעיה בשאלה ${qIndex}${qNum ? ' (מס\' ' + qNum + ')' : ''}`;
+  const body    =
 `שלום,
 
 מצאתי בעיה בשאלה הבאה:
@@ -833,9 +838,10 @@ LO: ${lo}
 
 תיאור הבעיה:
 [פרט כאן את הבעיה]
-`);
+`;
 
-  window.open(`mailto:tomer9tomer@gmail.com?subject=${subject}&body=${body}`);
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&to=tomer9tomer%40gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(gmailUrl, '_blank');
 }
 
 function skipQuestion() {
