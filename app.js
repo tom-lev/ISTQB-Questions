@@ -868,8 +868,14 @@ function reportQuestion() {
   const subject = `בעיה בשאלה מס ${qNum} מתוך בחינה לדוגמא ${examLetter}`;
   const body    = `שלום,\n\nמצאתי בעיה בשאלה מס ${qNum} מתוך בחינה לדוגמא ${examLetter}.\n\nתיאור הבעיה:\n[פרט כאן את הבעיה]\n`;
 
-  const gmailUrl = `https://mail.google.com/mail/?view=cm&to=tomer9tomer%40gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  window.open(gmailUrl, '_blank');
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isMobile) {
+    // mailto: opens the native mail app on mobile
+    window.location.href = `mailto:tomer9tomer@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  } else {
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=tomer9tomer%40gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.open(gmailUrl, '_blank');
+  }
 }
 
 function skipQuestion() {
