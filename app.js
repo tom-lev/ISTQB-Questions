@@ -1114,6 +1114,12 @@ function formatExplanation(text) {
   // Rule: split only if the letter is preceded by whitespace (not a digit/dash/letter)
   text = text.replace(/(?<![(\d\w–-])\s+([a-e]\))\s+/gi, (_, letter) => `\n${letter} `);
 
+  // Split on transition words like "Thus:" "Therefore:" "So:"
+  text = text.replace(/\s+(Thus|Therefore|So|Hence|Note):/gi, (_, word) => `\n${word}:`);
+
+  // Also split on roman numeral markers: " i. " " ii. " " iii. " " iv. " " v. "
+  text = text.replace(/\s+(v?i{1,3}|iv|v|vi{0,3})\.\s+/gi, (_, num) => `\n${num}. `);
+
   // Split into lines and parse
   const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
   const optionRegex = /^([a-e])\)\s*/i;
