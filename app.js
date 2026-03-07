@@ -565,6 +565,26 @@ function startMode(mode) {
     document.getElementById('config-title').textContent = mode === 'speed'
       ? (he ? '⚡🔥 מצב בזק' : '⚡🔥 Speed Mode')
       : (he ? '🎲 חידון אקראי' : '🎲 Random Quiz');
+
+    // Update slider: max = pool size, step = 5, "all" when at max
+    const rng = document.getElementById('rng-count');
+    const lbl = document.getElementById('lbl-count');
+    if (rng) {
+      const poolSize = ACTIVE_Q.length;
+      // Round max down to nearest multiple of 5, min 40
+      const sliderMax = Math.max(40, Math.ceil(poolSize / 5) * 5);
+      rng.max = sliderMax;
+      rng.step = 5;
+      // Keep current value or clamp to new max
+      const cur = Math.min(parseInt(rng.value) || 20, sliderMax);
+      rng.value = cur;
+      if (lbl) lbl.textContent = cur >= sliderMax ? '∞ הכל' : cur;
+      rng.oninput = function() {
+        const v = parseInt(this.value);
+        if (lbl) lbl.textContent = v >= parseInt(this.max) ? '∞ הכל' : v;
+      };
+    }
+
     showScreen('config');
   } else if (mode === 'exam') {
     runQuiz(shuffle(ACTIVE_Q).slice(0, 40));
@@ -868,14 +888,8 @@ function reportQuestion() {
   const subject = `בעיה בשאלה מס ${qNum} מתוך בחינה לדוגמא ${examLetter}`;
   const body    = `שלום,\n\nמצאתי בעיה בשאלה מס ${qNum} מתוך בחינה לדוגמא ${examLetter}.\n\nתיאור הבעיה:\n[פרט כאן את הבעיה]\n`;
 
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if (isMobile) {
-    // mailto: opens the native mail app on mobile
-    window.location.href = `mailto:tomer9tomer@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  } else {
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=tomer9tomer%40gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(gmailUrl, '_blank');
-  }
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&to=tomer9tomer%40gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(gmailUrl, '_blank');
 }
 
 function skipQuestion() {
