@@ -1111,18 +1111,18 @@ function formatExplanation(text) {
 
   // Normalize: insert newline before each option marker (a) b) c) d))
   // handles both "...text a) next..." and already-newlined formats
-  text = text.replace(/\s+([a-d]\))\s+/gi, (_, letter) => `\n${letter} `);
+  text = text.replace(/\s+([a-e]\))\s+/gi, (_, letter) => `\n${letter} `);
 
   // Split into lines and parse
   const lines = text.split(/\n/).map(l => l.trim()).filter(Boolean);
-  const optionRegex = /^([a-d])\)\s*/i;
+  const optionRegex = /^([a-e])\)\s*/i;
 
   const introLines = [];
   const groups = [];
   let inOptions = false;
 
   for (const line of lines) {
-    const m = line.match(/^([a-d])\)\s*(.*)/i);
+    const m = line.match(/^([a-e])\)\s*(.*)/i);
     if (m) {
       inOptions = true;
       groups.push({ letter: m[1].toLowerCase(), text: m[2] });
@@ -1160,7 +1160,9 @@ function buildExpRow(letter, body, isCorrect) {
   if (tagMatch) {
     const before = tagMatch[1].trim();
     const after  = tagMatch[2].trim();
-    displayBody  = [before, after].filter(Boolean).join(' — ');
+    const combined = [before, after].filter(Boolean).join(' — ');
+    // If nothing left after stripping "is correct", show the original body
+    displayBody = combined || body;
   }
   return `
     <div class="exp-row ${isCorrect ? 'exp-row-correct' : ''}">
