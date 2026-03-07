@@ -120,7 +120,7 @@ async function persistData() {
 }
 
 // Called after login — load cloud data directly into memory
-async function loadCloudData(data) {
+window.loadCloudData = async function(data) {
   if (!data) return;
   // sessionStorage = same browser/device this session → always preferred (it's the freshest local state)
   // No sessionStorage = new device/browser → load from Firestore
@@ -141,7 +141,7 @@ async function loadCloudData(data) {
       const bestElS = document.getElementById('stat-best');
       if (bestElS) bestElS.textContent = BEST ? BEST + '%' : '—';
       updateWrongCount(); updateAnsweredStats(); updateStarredCount();
-      // Do NOT call persistData here — no need to re-save on a plain refresh
+      if (_pendingPersist) await persistData();
       return;
     } catch(e) { sessionStorage.removeItem(sessionKey); }
   }
@@ -424,7 +424,7 @@ function setLang(lang) {
   if (lblKlevel) lblKlevel.textContent = he ? 'רמת קושי' : 'Difficulty';
 }
 
-function init() {
+window.init = function() {
   document.getElementById('stat-total').textContent = ALL_Q.length;
   document.getElementById('count-random').textContent = ALL_Q.length + ' Questions';
   updateWrongCount();
@@ -1797,5 +1797,65 @@ function closeQModal(e) {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeQModal();
 });
+
+
+// ── DEBUG PANEL (remove after fixing sync) ──
+(function() {
+  const logs = [];
+  const _origLog  = console.log.bind(console);
+  const _origWarn = console.warn.bind(console);
+  const _origErr  = console.error.bind(console);
+  function capture(level, args) {
+    const msg = args.map(a => {
+      try { return typeof a === 'object' ? JSON.stringify(a) : String(a); }
+      catch(e) { return String(a); }
+    }).join(' ');
+    logs.push('[' + level + '] ' + msg);
+    if (logs.length > 60) logs.shift();
+    const el = document.getElementById('_dbg_content');
+    if (el) el.textContent = logs.join('\n');
+  }
+  console.log   = (...a) => { _origLog(...a);  capture('LOG',  a); };
+  console.warn  = (...a) => { _origWarn(...a); capture('WARN', a); };
+  console.error = (...a) => { _origErr(...a);  capture('ERR',  a); };
+
+  // Only show debug panel for the admin user
+  function _maybeShowDebug() {
+    if (window._currentUser?.email !== 'tomer9tomer@gmail.com') return;
+    const panel = document.createElement('div');
+    panel.id = '_dbg_panel';
+    panel.style.cssText = 'display:none;position:fixed;bottom:0;left:0;right:0;height:50vh;background:#111;color:#0f0;font-size:11px;font-family:monospace;z-index:99999;overflow-y:auto;padding:8px;white-space:pre-wrap;word-break:break-all';
+    panel.innerHTML = '<div id="_dbg_content"></div>';
+    document.body.appendChild(panel);
+
+    const btn = document.createElement('button');
+    btn.textContent = '🐛';
+    btn.style.cssText = 'position:fixed;bottom:10px;left:10px;z-index:99999;background:#333;color:#fff;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;opacity:0.7';
+    btn.onclick = () => {
+      const p = document.getElementById('_dbg_panel');
+      p.style.display = p.style.display === 'none' ? 'block' : 'none';
+      const el = document.getElementById('_dbg_content');
+      if (el) el.textContent = logs.join('\n');
+      setTimeout(() => { p.scrollTop = p.scrollHeight; }, 50);
+    };
+    document.body.appendChild(btn);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Poll until auth resolves, then show debug if eligible
+    const interval = setInterval(() => {
+      if (window._currentUser !== undefined) {
+        clearInterval(interval);
+        _maybeShowDebug();
+      }
+    }, 300);
+    // Fallback: also trigger when auth state changes
+    const _origInit = window.init;
+    window.init = function(...args) {
+      _maybeShowDebug();
+      return _origInit?.apply(this, args);
+    };
+  });
+})();
 
 loadQuestions(); // loads questions.json; init() fires only after auth resolves

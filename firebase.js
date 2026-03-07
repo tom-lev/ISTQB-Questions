@@ -1,7 +1,7 @@
 // ========== Firebase Auth + Firestore Module ==========
 
 import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, addDoc, getDocs, serverTimestamp }
+  import { getFirestore, doc, setDoc, getDoc, getDocFromServer, deleteDoc, collection, addDoc, getDocs, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -153,21 +153,29 @@ import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.7.1/fire
       if (window._questionsReady) window.init();
       else window._authReady = true;
 
-      // Load Firestore data in background (non-blocking)
-      getDoc(doc(db, "users", user.uid)).then(async snap => {
-        console.log('[FIREBASE] Loaded from Firestore:', JSON.stringify(snap.data()?.starredIds));
-        if (snap.exists()) {
-          await window.loadCloudData(snap.data());
-        }
-        await fetchQuizHistory(user.uid);
-      }).catch(e => console.warn('[FIREBASE] Could not load user data:', e));
-
-      // Save/update profile metadata
-      setDoc(doc(db, "users", user.uid), {
+      // Save metadata FIRST (merge only — won't overwrite other fields)
+      // Must run before getDocFromServer to avoid race condition where
+      // metadata write arrives after the read and shadows existing fields
+      await setDoc(doc(db, "users", user.uid), {
         name: user.displayName,
         email: user.email,
         lastLogin: serverTimestamp()
-      }, { merge: true }).catch(console.error);
+      }, { merge: true });
+
+      // Now load full user data from server
+      getDocFromServer(doc(db, "users", user.uid)).then(async snap => {
+        console.log('[FIREBASE] snap.exists:', snap.exists(), 'keys:', snap.exists() ? Object.keys(snap.data()).join(',') : 'none');
+        console.log('[FIREBASE] starredIds:', JSON.stringify(snap.data()?.starredIds));
+        if (snap.exists()) {
+          await window.loadCloudData(snap.data());
+        } else {
+          window._cloudDataReady = true;
+        }
+        await fetchQuizHistory(user.uid);
+      }).catch(e => {
+        console.error('[FIREBASE] ERROR:', e?.code, e?.message);
+        window._cloudDataReady = true;
+      });
 
     } else {
       window._currentUser = null;
