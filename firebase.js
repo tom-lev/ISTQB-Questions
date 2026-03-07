@@ -153,29 +153,29 @@ import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.7.1/fire
       if (window._questionsReady) window.init();
       else window._authReady = true;
 
-      // Load Firestore data in background (non-blocking)
+      // Save metadata FIRST (merge only — won't overwrite other fields)
+      // Must run before getDocFromServer to avoid race condition where
+      // metadata write arrives after the read and shadows existing fields
+      await setDoc(doc(db, "users", user.uid), {
+        name: user.displayName,
+        email: user.email,
+        lastLogin: serverTimestamp()
+      }, { merge: true });
+
+      // Now load full user data from server
       getDocFromServer(doc(db, "users", user.uid)).then(async snap => {
-        console.log('[FIREBASE] snap.exists:', snap.exists());
-        console.log('[FIREBASE] snap.data keys:', snap.exists() ? Object.keys(snap.data()).join(',') : 'N/A');
+        console.log('[FIREBASE] snap.exists:', snap.exists(), 'keys:', snap.exists() ? Object.keys(snap.data()).join(',') : 'none');
         console.log('[FIREBASE] starredIds:', JSON.stringify(snap.data()?.starredIds));
         if (snap.exists()) {
           await window.loadCloudData(snap.data());
         } else {
-          console.warn('[FIREBASE] Document does not exist for uid:', user.uid);
           window._cloudDataReady = true;
         }
         await fetchQuizHistory(user.uid);
       }).catch(e => {
-        console.error('[FIREBASE] ERROR loading user data:', e?.code, e?.message);
+        console.error('[FIREBASE] ERROR:', e?.code, e?.message);
         window._cloudDataReady = true;
       });
-
-      // Save/update profile metadata
-      setDoc(doc(db, "users", user.uid), {
-        name: user.displayName,
-        email: user.email,
-        lastLogin: serverTimestamp()
-      }, { merge: true }).catch(console.error);
 
     } else {
       window._currentUser = null;
