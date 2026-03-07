@@ -1,7 +1,7 @@
 // ========== Firebase Auth + Firestore Module ==========
 
 import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc, deleteDoc, collection, addDoc, getDocs, serverTimestamp }
+  import { getFirestore, doc, setDoc, getDoc, getDocFromServer, deleteDoc, collection, addDoc, getDocs, serverTimestamp }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -154,7 +154,7 @@ import { initializeApp }    from "https://www.gstatic.com/firebasejs/10.7.1/fire
       else window._authReady = true;
 
       // Load Firestore data in background (non-blocking)
-      getDoc(doc(db, "users", user.uid)).then(async snap => {
+      getDocFromServer(doc(db, "users", user.uid)).then(async snap => {
         console.log('[FIREBASE] Loaded from Firestore:', JSON.stringify(snap.data()?.starredIds));
         if (snap.exists()) {
           await window.loadCloudData(snap.data());
