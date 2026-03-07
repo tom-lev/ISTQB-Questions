@@ -56,8 +56,8 @@ let ACTIVE_Q = [];  // the pool currently in use (en or he)
 let ALL_GLOSSARY = [];  // 324 glossary terms
 let FC_POOL = [];        // current flashcard pool (filtered/shuffled — set in FLASHCARDS section)
 let FC_KNOWN = new Set();
-let FC_DIRECTION = 'term';
-let FC_VIEW = 'grid';
+let FC_DIRECTION = 'def';
+let FC_VIEW = 'one';
 let FCO_IDX = 0;
 let CURRENT_LANG = 'he';
 let SESSION = { questions: [], idx: 0, correct: 0, wrong: 0, skipped: 0, answers: [], mode: '' };
@@ -1511,6 +1511,15 @@ async function clearSaved() {
 function initFlashcards() {
   FC_POOL = [...ALL_GLOSSARY];
   FCO_IDX = 0;
+  // Sync button states with defaults
+  const vGrid = document.getElementById('fc-view-grid');
+  const vOne  = document.getElementById('fc-view-one');
+  if (vGrid) vGrid.classList.toggle('active', FC_VIEW === 'grid');
+  if (vOne)  vOne.classList.toggle('active',  FC_VIEW === 'one');
+  const dTerm = document.getElementById('fc-dir-term');
+  const dDef  = document.getElementById('fc-dir-def');
+  if (dTerm) dTerm.classList.toggle('active', FC_DIRECTION === 'term');
+  if (dDef)  dDef.classList.toggle('active',  FC_DIRECTION === 'def');
   renderFlashcards();
 }
 
