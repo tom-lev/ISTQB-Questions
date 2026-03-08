@@ -1321,14 +1321,18 @@ function buildReview() {
     } else {
       // Multi-answer question
       if (a.chosenMulti && Array.isArray(a.chosenMulti)) {
-        const chosenLabels = a.chosenMulti.map(i => `${letters[i] || '?'}) ${a.q.opts[i] || ''}`).join(', ');
-        answerLine = `<span class="${a.correct ? 'review-correct' : 'review-wrong'}">
-          ${a.correct ? '✓' : '✗'} ${he ? 'תשובתך' : 'Your answer'}: ${chosenLabels}
-        </span>`;
+        const chosenLines = a.chosenMulti.map(j => `<div style="margin:2px 0">${letters[j] || '?'}) ${a.q.opts[j] || ''}</div>`).join('');
+        answerLine = `<div class="${a.correct ? 'review-correct' : 'review-wrong'}" style="margin-bottom:${a.correct ? '0' : '6px'}">
+          <span style="font-weight:600">${a.correct ? '\u2713' : '\u2717'} ${he ? '\u05ea\u05e9\u05d5\u05d1\u05d5\u05ea\u05d9\u05da' : 'Your answers'}:</span>
+          <div style="margin-top:3px;padding-right:0.8rem">${chosenLines}</div>
+        </div>`;
         if (!a.correct) {
           const correctArr = Array.isArray(a.q.ans) ? a.q.ans : [a.q.ans];
-          const correctLabels = correctArr.map(i => `${letters[i] || '?'}) ${a.q.opts[i] || ''}`).join(', ');
-          answerLine += ` &nbsp; <span class="review-correct">✓ ${he ? 'נכון' : 'Correct'}: ${correctLabels}</span>`;
+          const correctLines = correctArr.map(j => `<div style="margin:2px 0">${letters[j] || '?'}) ${a.q.opts[j] || ''}</div>`).join('');
+          answerLine += `<div class="review-correct">
+            <span style="font-weight:600">\u2713 ${he ? '\u05ea\u05e9\u05d5\u05d1\u05d5\u05ea \u05e0\u05db\u05d5\u05e0\u05d5\u05ea' : 'Correct answers'}:</span>
+            <div style="margin-top:3px;padding-right:0.8rem">${correctLines}</div>
+          </div>`;
         }
       } else {
         // Single-answer question
