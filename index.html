@@ -156,6 +156,14 @@
              oninput="const v=parseInt(this.value);document.getElementById('lbl-count').textContent=(v>=parseInt(this.max)?'\u221e \u05d4\u05db\u05dc':v)">
     </div>
 
+    <div class="field hidden" id="speed-timer-config">
+      <div class="range-row">
+        <label style="margin:0" id="lbl-timer-label">⏱ זמן לשאלה</label>
+        <span class="range-val" id="lbl-speed-timer">30 שנ׳</span>
+      </div>
+      <input type="range" id="rng-speed-timer" min="10" max="90" value="30" step="5">
+    </div>
+
     <div class="field" id="field-order">
       <label id="lbl-order-field">סדר</label>
       <select id="sel-order">
