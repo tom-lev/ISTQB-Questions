@@ -2438,10 +2438,11 @@
   background: var(--accent);
   border-color: var(--accent);
   border-style: solid;
+  color: #fff;
 }
 .exam-src-all-tile:has(input:checked) .exam-src-tile-name,
 .exam-src-all-tile:has(input:checked) .exam-src-tile-icon {
-  color: #fff;
+  color: #fff !important;
 }
 .exam-src-tile:not(.exam-src-all-tile):has(input:checked) {
   background: var(--accent);
@@ -2480,7 +2481,7 @@
 }
 .exam-src-all-tile:has(input:checked) .exam-src-tile-tag {
   background: rgba(255,255,255,0.25);
-  color: #fff;
+  color: #fff !important;
   border-color: rgba(255,255,255,0.4);
 }
 .exam-src-hint {
