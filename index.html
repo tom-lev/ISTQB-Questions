@@ -115,27 +115,79 @@
 <!-- Config -->
 <!-- Exam Config Screen -->
 <div id="exam-config" class="screen hidden">
-  <div class="config-box">
-    <div class="config-title">📋 סימולציית בחינה</div>
+  <div class="exam-cfg-box">
 
-    <div class="field">
-      <label id="lbl-exam-src-field">מקור שאלות</label>
-      <div id="exam-src-checks" class="src-checks">
-        <label class="src-check-all"><input type="checkbox" id="exam-src-all" checked onchange="toggleAllExamSources(this.checked)"> <span>ערבב מכל הבחינות (מומלץ)</span></label>
-        <label><input type="checkbox" class="exam-src-cb" value="בחינה לדוגמא גרסה א'"> <span>בחינה לדוגמא גרסה א'</span></label>
-        <label><input type="checkbox" class="exam-src-cb" value="בחינה לדוגמא גרסה ב'"> <span>בחינה לדוגמא גרסה ב'</span></label>
-        <label><input type="checkbox" class="exam-src-cb" value="בחינה לדוגמא גרסה ג'"> <span>בחינה לדוגמא גרסה ג'</span></label>
-        <label><input type="checkbox" class="exam-src-cb" value="בחינה לדוגמא גרסה ד'"> <span>בחינה לדוגמא גרסה ד'</span></label>
-      </div>
-      <div id="exam-src-note" style="font-size:0.8rem;color:var(--muted);margin-top:0.4rem;direction:rtl">
-        ✦ בחירת מקור אחד: 40 שאלות מאותה בחינה | מספר מקורות: ערבוב אקראי ללא חזרות
+    <!-- Header -->
+    <div class="exam-cfg-header">
+      <div class="exam-cfg-icon">📋</div>
+      <div>
+        <div class="exam-cfg-title">סימולציית בחינה</div>
+        <div class="exam-cfg-subtitle">40 שאלות · 60 דקות · סף מעבר 65%</div>
       </div>
     </div>
 
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="beginExam()">← התחל סימולציה</button>
+    <!-- K-level info strip -->
+    <div class="exam-klevel-strip">
+      <div class="exam-klevel-badge k1">
+        <span class="ekb-label">K1</span>
+        <span class="ekb-count">8 שאלות</span>
+        <span class="ekb-desc">זכירה</span>
+      </div>
+      <div class="exam-klevel-sep">+</div>
+      <div class="exam-klevel-badge k2">
+        <span class="ekb-label">K2</span>
+        <span class="ekb-count">24 שאלות</span>
+        <span class="ekb-desc">הבנה</span>
+      </div>
+      <div class="exam-klevel-sep">+</div>
+      <div class="exam-klevel-badge k3">
+        <span class="ekb-label">K3</span>
+        <span class="ekb-count">8 שאלות</span>
+        <span class="ekb-desc">יישום</span>
+      </div>
+    </div>
+    <div class="exam-klevel-note">חלוקה מדויקת לפי תקן ISTQB הרשמי — בדיוק כמו הבחינה האמיתית</div>
+
+    <!-- Source picker -->
+    <div class="exam-cfg-section">
+      <div class="exam-cfg-section-label">בחר מקור שאלות</div>
+      <div id="exam-src-checks" class="exam-src-grid">
+        <label class="exam-src-tile exam-src-all-tile">
+          <input type="checkbox" id="exam-src-all" checked onchange="toggleAllExamSources(this.checked)">
+          <span class="exam-src-tile-icon">🔀</span>
+          <span class="exam-src-tile-name">ערבב מכל הבחינות</span>
+          <span class="exam-src-tile-tag">מומלץ</span>
+        </label>
+        <label class="exam-src-tile">
+          <input type="checkbox" class="exam-src-cb" value="בחינה לדוגמא גרסה א'">
+          <span class="exam-src-tile-icon">א׳</span>
+          <span class="exam-src-tile-name">גרסה א׳</span>
+        </label>
+        <label class="exam-src-tile">
+          <input type="checkbox" class="exam-src-cb" value="בחינה לדוגמא גרסה ב'">
+          <span class="exam-src-tile-icon">ב׳</span>
+          <span class="exam-src-tile-name">גרסה ב׳</span>
+        </label>
+        <label class="exam-src-tile">
+          <input type="checkbox" class="exam-src-cb" value="בחינה לדוגמא גרסה ג'">
+          <span class="exam-src-tile-icon">ג׳</span>
+          <span class="exam-src-tile-name">גרסה ג׳</span>
+        </label>
+        <label class="exam-src-tile">
+          <input type="checkbox" class="exam-src-cb" value="בחינה לדוגמא גרסה ד'">
+          <span class="exam-src-tile-icon">ד׳</span>
+          <span class="exam-src-tile-name">גרסה ד׳</span>
+        </label>
+      </div>
+      <div class="exam-src-hint">ניתן לבחור מספר גרסאות — השאלות יעורבבו ללא חזרות</div>
+    </div>
+
+    <!-- Actions -->
+    <div class="exam-cfg-actions">
+      <button class="btn btn-primary exam-cfg-start" onclick="beginExam()">← התחל סימולציה</button>
       <button class="btn btn-ghost" onclick="showScreen('home')">→ חזרה</button>
     </div>
+
   </div>
 </div>
 
