@@ -1319,11 +1319,30 @@ function buildReview() {
     if (a.skipped) {
       answerLine = `<span style="color:var(--warning)">⊘ ${he ? 'דולג' : 'Skipped'}</span>`;
     } else {
-      answerLine = `<span class="${a.correct ? 'review-correct' : 'review-wrong'}">
-        ${a.correct ? '✓' : '✗'} ${he ? 'תשובתך' : 'Your answer'}: ${letters[a.chosen] || '?'}) ${a.q.opts[a.chosen] || ''}
-      </span>`;
-      if (!a.correct) {
-        answerLine += ` &nbsp; <span class="review-correct">✓ ${he ? 'נכון' : 'Correct'}: ${letters[a.q.ans]}) ${a.q.opts[a.q.ans]}</span>`;
+      // Multi-answer question
+      if (a.chosenMulti && Array.isArray(a.chosenMulti)) {
+        const chosenLines = a.chosenMulti.map(j => `<div style="margin:2px 0">${letters[j] || '?'}) ${a.q.opts[j] || ''}</div>`).join('');
+        answerLine = `<div class="${a.correct ? 'review-correct' : 'review-wrong'}" style="margin-bottom:${a.correct ? '0' : '6px'}">
+          <span style="font-weight:600">${a.correct ? '\u2713' : '\u2717'} ${he ? '\u05ea\u05e9\u05d5\u05d1\u05d5\u05ea\u05d9\u05da' : 'Your answers'}:</span>
+          <div style="margin-top:3px;padding-right:0.8rem">${chosenLines}</div>
+        </div>`;
+        if (!a.correct) {
+          const correctArr = Array.isArray(a.q.ans) ? a.q.ans : [a.q.ans];
+          const correctLines = correctArr.map(j => `<div style="margin:2px 0">${letters[j] || '?'}) ${a.q.opts[j] || ''}</div>`).join('');
+          answerLine += `<div class="review-correct">
+            <span style="font-weight:600">\u2713 ${he ? '\u05ea\u05e9\u05d5\u05d1\u05d5\u05ea \u05e0\u05db\u05d5\u05e0\u05d5\u05ea' : 'Correct answers'}:</span>
+            <div style="margin-top:3px;padding-right:0.8rem">${correctLines}</div>
+          </div>`;
+        }
+      } else {
+        // Single-answer question
+        answerLine = `<span class="${a.correct ? 'review-correct' : 'review-wrong'}">
+          ${a.correct ? '✓' : '✗'} ${he ? 'תשובתך' : 'Your answer'}: ${letters[a.chosen] || '?'}) ${a.q.opts[a.chosen] || ''}
+        </span>`;
+        if (!a.correct) {
+          const correctIdx = Array.isArray(a.q.ans) ? a.q.ans[0] : a.q.ans;
+          answerLine += ` &nbsp; <span class="review-correct">✓ ${he ? 'נכון' : 'Correct'}: ${letters[correctIdx]}) ${a.q.opts[correctIdx]}</span>`;
+        }
       }
     }
     div.innerHTML = `
