@@ -2438,20 +2438,23 @@
   background: var(--accent);
   border-color: var(--accent);
   border-style: solid;
-  color: #fff;
 }
-.exam-src-all-tile:has(input:checked) .exam-src-tile-name,
-.exam-src-all-tile:has(input:checked) .exam-src-tile-icon {
+.exam-src-all-tile:has(input:checked) .exam-src-tile-icon,
+.exam-src-all-tile:has(input:checked) .exam-src-tile-name {
   color: #fff !important;
+}
+.exam-src-all-tile:has(input:checked) .exam-src-tile-tag {
+  background: rgba(255,255,255,0.25) !important;
+  color: #fff !important;
+  border-color: rgba(255,255,255,0.4) !important;
 }
 .exam-src-tile:not(.exam-src-all-tile):has(input:checked) {
   background: var(--accent);
   border-color: var(--accent);
   border-style: solid;
 }
-.exam-src-tile:not(.exam-src-all-tile):has(input:checked) .exam-src-tile-name,
-.exam-src-tile:not(.exam-src-all-tile):has(input:checked) .exam-src-tile-icon {
-  color: #fff;
+.exam-src-tile:not(.exam-src-all-tile):has(input:checked) * {
+  color: #fff !important;
 }
 .exam-src-tile:hover { border-color: var(--accent); }
 .exam-src-tile-icon {
