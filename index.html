@@ -84,6 +84,8 @@
   </div>
 
   <span id="stat-total" style="display:none"></span>
+
+  <div class="home-section-label">חידונים</div>
   <div class="mode-grid">
     <div class="mode-card purple" onclick="startMode('random')">
       <div class="mode-icon">🎲</div>
@@ -103,11 +105,21 @@
       <div class="mode-desc" id="mc-desc-speed">קבעו זמן לשאלה: 10–90 שניות — טעות אוטומטית אם לא עונים בזמן.</div>
       <div class="mode-count" id="mc-count-speed">10–90 שנ׳ לשאלה</div>
     </div>
+  </div>
+
+  <div class="home-section-label" style="margin-top:1.4rem">תרגול מושגים</div>
+  <div class="mode-grid">
     <div class="mode-card teal" onclick="navTo('flashcards-page')">
       <div class="mode-icon">🃏</div>
       <div class="mode-title" id="mc-title-flash">כרטיסיות</div>
       <div class="mode-desc" id="mc-desc-flash">324 מושגי מפתח — הפוך כל כרטיס לראות את ההגדרה.</div>
       <div class="mode-count" id="mc-count-flash">324 מושגים</div>
+    </div>
+    <div class="mode-card green" onclick="startMatchGame()">
+      <div class="mode-icon">🔗</div>
+      <div class="mode-title">משחק התאמות</div>
+      <div class="mode-desc">התאם מושגים להגדרות שלהם — 5 זוגות בכל סט.</div>
+      <div class="mode-count">324 מושגים</div>
     </div>
   </div>
 </div>
@@ -546,9 +558,6 @@
       <button class="fc-icon-btn-solo" onclick="fcShuffle()"       title="ערבב">🔀</button>
       <button class="fc-icon-btn-solo" id="fc-btn-unknown" onclick="fcFilterUnknown()" title="רק לא ידוע">❓</button>
       <button class="fc-icon-btn-solo" id="fc-btn-all"     onclick="fcShowAll()"       title="הכל" style="display:none">✦</button>
-      <div style="width:1px;background:var(--border);height:24px;margin:0 2px"></div>
-      <button class="fc-icon-btn-solo" onclick="startGlossaryGame()" title="בחן את עצמך">🎮</button>
-      <button class="fc-icon-btn-solo" onclick="startMatchGame()" title="משחק התאמות">🔗</button>
     </div>
   </div>
 
