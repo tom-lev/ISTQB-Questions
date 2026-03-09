@@ -126,7 +126,10 @@
     font-weight: 800;
     line-height: 0.95;
     letter-spacing: -0.04em;
-    color: var(--text);
+    background: linear-gradient(160deg, var(--text) 0%, rgba(180,175,255,0.85) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 0.6rem;
   }
   h1.hero-title em {
@@ -283,7 +286,7 @@
     transition: border-color 0.2s, transform 0.2s;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
     gap: 0.4rem;
     direction: rtl;
     text-align: right;
