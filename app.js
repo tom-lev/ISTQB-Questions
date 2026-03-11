@@ -440,15 +440,16 @@ window._questionsReady = false;
 window._authReady      = false;
 
 function showScreen(id) {
-  ['loading','home','config','exam-config','quiz','results','stats-page','about-page','saved-page','flashcards-page','glossary-game-page','match-game-page'].forEach(s => {
+  ['loading','home','config','exam-config','streak-config','quiz','results','stats-page','about-page','saved-page','flashcards-page','glossary-game-page','match-game-page'].forEach(s => {
     const el = document.getElementById(s);
     if (el) el.classList.add('hidden');
   });
   document.getElementById(id).classList.remove('hidden');
+  window.scrollTo(0, 0);
   const nav = document.getElementById('global-nav');
   const toggleBtn = document.getElementById('sidebar-toggle-btn');
   const logoBar = document.getElementById('top-logo-bar');
-  const noNav = ['loading','config','exam-config','quiz','results'];
+  const noNav = ['loading','config','exam-config','streak-config','quiz','results'];
   const hide = noNav.includes(id);
   if (nav) {
     nav.classList.toggle('hidden-nav', hide);
