@@ -1072,11 +1072,13 @@ async function submitMultiAnswer(q) {
     SESSION.correct++;
     SESSION.answers[SESSION.idx] = { q, chosen: chosen[0], correct: true, chosenMulti: chosen };
     SFX.correct();
+    if (SESSION.mode === 'streak') streakOnCorrect();
   } else {
     SESSION.wrong++;
     SESSION.answers[SESSION.idx] = { q, chosen: chosen[0], correct: false, chosenMulti: chosen };
     if (gIdx >= 0 && !WRONG_IDS.includes(gIdx)) WRONG_IDS.push(gIdx);
     SFX.wrong();
+    if (SESSION.mode === 'streak') { setTimeout(streakGameOver, 900); return; }
   }
 
   await persistData();
