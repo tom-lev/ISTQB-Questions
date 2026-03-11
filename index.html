@@ -307,6 +307,40 @@
   </div>
 </div>
 
+<!-- Streak Config -->
+<div id="streak-config" class="screen hidden">
+  <div class="config-box">
+    <div class="config-title">מצב רצף 🔥</div>
+
+    <div class="field">
+      <label id="lbl-streak-source-field">מקור</label>
+      <div id="streak-src-checks-he" class="src-checks">
+        <label class="src-check-all"><input type="checkbox" id="streak-src-all-he" checked onchange="toggleStreakSources(this.checked)"> <span>כל המקורות</span></label>
+        <label><input type="checkbox" class="streak-src-cb" value="בחינה לדוגמא גרסה א'"> <span>גרסה א'</span></label>
+        <label><input type="checkbox" class="streak-src-cb" value="בחינה לדוגמא גרסה ב'"> <span>גרסה ב'</span></label>
+        <label><input type="checkbox" class="streak-src-cb" value="בחינה לדוגמא גרסה ג'"> <span>גרסה ג'</span></label>
+        <label><input type="checkbox" class="streak-src-cb" value="בחינה לדוגמא גרסה ד'"> <span>גרסה ד'</span></label>
+        <label><input type="checkbox" class="streak-src-cb" value="חידון מילות מפתח"> <span>מילות מפתח</span></label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>רמת קושי</label>
+      <select id="streak-sel-klevel">
+        <option value="all">כל הרמות</option>
+        <option value="K1">K1 — זכירה</option>
+        <option value="K2">K2 — הבנה</option>
+        <option value="K3">K3 — יישום</option>
+      </select>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="beginStreakMode()" style="background:#ff6b35;border-color:#ff6b35">🔥 התחל רצף</button>
+      <button class="btn btn-ghost" onclick="showScreen('home')">→ חזרה</button>
+    </div>
+  </div>
+</div>
+
 <!-- Quiz -->
 <div id="quiz" class="screen hidden">
   <div class="quiz-header">
@@ -326,13 +360,19 @@
 
   <!-- Streak Game Over overlay -->
   <div id="streak-gameover" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)">
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;text-align:center;direction:rtl;max-width:340px;width:90%">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;text-align:center;direction:rtl;max-width:380px;width:90%">
       <div style="font-size:3.5rem;margin-bottom:0.3rem">💥</div>
       <div style="font-size:1rem;color:var(--muted);margin-bottom:0.5rem">הרצף נשבר!</div>
       <div id="streak-final" style="font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;color:#ff6b35;line-height:1;margin-bottom:0.3rem">0</div>
       <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem">שאלות ברצף</div>
       <div id="streak-new-best" class="hidden" style="background:rgba(255,107,53,0.12);border:1px solid rgba(255,107,53,0.3);border-radius:10px;padding:0.5rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#ff6b35">🏆 שיא חדש!</div>
-      <div id="streak-prev-best-line" style="font-size:0.78rem;color:var(--muted);margin-bottom:1.4rem"></div>
+      <div id="streak-prev-best-line" style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem"></div>
+      <div id="streak-wrong-summary" class="hidden" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0.8rem 1rem;margin-bottom:1.2rem;text-align:right;font-size:0.8rem;line-height:1.6">
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.4rem;text-align:center">השאלה שפספסת</div>
+        <div id="streak-wrong-q" style="color:var(--text);margin-bottom:0.5rem;font-weight:500"></div>
+        <div id="streak-wrong-correct" style="color:var(--success)"></div>
+        <div id="streak-wrong-chosen" style="color:var(--error)"></div>
+      </div>
       <div style="display:flex;gap:0.7rem;justify-content:center;flex-wrap:wrap">
         <button class="btn btn-primary" onclick="streakRestart()" style="background:#ff6b35;border-color:#ff6b35">🔥 שחק שוב</button>
         <button class="btn btn-ghost" onclick="streakQuit()">← בית</button>
