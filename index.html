@@ -47,69 +47,119 @@
 
 <!-- Home -->
 <div id="home" class="screen hidden">
-  <div class="logo-area">
-    <div class="badge">✦ ISTQB CTFL Prep</div>
-    <h1 class="hero-title" id="hero-title">תרגול<br>ISTQB</h1>
-    <p class="hero-sub">Foundation Level Certification Practice</p>
+
+  <!-- Top bar: auth + theme -->
+  <div class="home-topbar">
+    <div class="home-topbar-left">
+      <div id="user-info" class="home-user-info">טוען...</div>
+      <button class="btn-google" id="btn-login" onclick="loginWithGoogle()">
+        <svg width="14" height="14" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        התחבר
+      </button>
+      <button class="btn-google hidden" id="btn-logout" onclick="logoutGoogle()" style="border-color:rgba(255,101,132,0.25);color:var(--error)">התנתק</button>
+    </div>
+    <div class="home-topbar-right">
+      <span class="home-badge">✦ ISTQB CTFL</span>
+    </div>
   </div>
 
-  <!-- lang-toggle hidden: only Hebrew available -->
+  <!-- hidden lang toggles -->
   <span id="lang-he-btn" style="display:none"></span>
   <span id="lang-en-btn" style="display:none"></span>
-
-  <div class="auth-strip">
-    <div id="user-info" style="font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--muted)">טוען מצב התחברות...</div>
-    <button class="btn-google" id="btn-login" onclick="loginWithGoogle()">
-      <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      התחבר עם Google
-    </button>
-    <button class="btn-google hidden" id="btn-logout" onclick="logoutGoogle()" style="border-color:rgba(255,101,132,0.3);color:var(--error)">
-      התנתק
-    </button>
-  </div>
-
-  <div class="stats-strip">
-    <div class="stat-item">
-      <div class="stat-num" id="stat-best">—</div>
-      <div class="stat-label">Best Score</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num" id="stat-unique">0</div>
-      <div class="stat-label">Unique Qs</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num" id="stat-answered">0</div>
-      <div class="stat-label">Answered</div>
-    </div>
-  </div>
-
   <span id="stat-total" style="display:none"></span>
-  <div class="mode-grid">
-    <div class="mode-card purple" onclick="startMode('random')">
-      <div class="mode-icon">🎲</div>
-      <div class="mode-title" id="mc-title-random">חידון אקראי</div>
-      <div class="mode-desc" id="mc-desc-random">שאלות אקראיות מכל המאגרים. הגדר כמות, מקור ורמת קושי.</div>
-      <div class="mode-count" id="count-random">All Questions</div>
-    </div>
-    <div class="mode-card pink" onclick="startMode('exam')" id="home-exam-card">
-      <div class="mode-icon">📋</div>
-      <div class="mode-title" id="mc-title-exam">סימולציית בחינה</div>
-      <div class="mode-desc" id="mc-desc-exam">40 שאלות המדמות תנאי ISTQB אמיתיים.</div>
-      <div class="mode-count" id="mc-count-exam">40 שאלות</div>
-    </div>
-    <div class="mode-card orange" onclick="startMode('speed')">
-      <div class="mode-icon">⚡🔥</div>
-      <div class="mode-title" id="mc-title-speed">מצב בזק</div>
-      <div class="mode-desc" id="mc-desc-speed">קבעו זמן לשאלה: 10–90 שניות — טעות אוטומטית אם לא עונים בזמן.</div>
-      <div class="mode-count" id="mc-count-speed">10–90 שנ׳ לשאלה</div>
-    </div>
-    <div class="mode-card teal" onclick="navTo('flashcards-page')">
-      <div class="mode-icon">🃏</div>
-      <div class="mode-title" id="mc-title-flash">כרטיסיות</div>
-      <div class="mode-desc" id="mc-desc-flash">324 מושגי מפתח — הפוך כל כרטיס לראות את ההגדרה.</div>
-      <div class="mode-count" id="mc-count-flash">324 מושגים</div>
+
+  <!-- Hero -->
+  <div class="home-hero">
+    <h1 class="hero-title" id="hero-title">תרגול<br><em>ISTQB</em></h1>
+    <p class="hero-sub">Foundation Level Certification Practice</p>
+
+    <!-- Stats inline under hero -->
+    <div class="home-stats-row">
+      <div class="home-stat">
+        <span class="home-stat-num" id="stat-best">—</span>
+        <span class="home-stat-lbl">שיא</span>
+      </div>
+      <div class="home-stat-sep"></div>
+      <div class="home-stat">
+        <span class="home-stat-num" id="stat-unique">0</span>
+        <span class="home-stat-lbl">ייחודיות</span>
+      </div>
+      <div class="home-stat-sep"></div>
+      <div class="home-stat">
+        <span class="home-stat-num" id="stat-answered">0</span>
+        <span class="home-stat-lbl">תשובות</span>
+      </div>
     </div>
   </div>
+
+  <!-- Section: חידונים -->
+  <div class="home-section">
+    <div class="home-section-hd">
+      <span class="home-section-tag">01</span>
+      <span class="home-section-title">חידונים</span>
+    </div>
+    <div class="home-quiz-grid">
+      <div class="hq-card hq-primary" onclick="startMode('random')">
+        <div class="hq-accent-bar" style="background:var(--accent)"></div>
+        <div class="hq-icon">🎲</div>
+        <div class="hq-body">
+          <div class="hq-title" id="mc-title-random">חידון אקראי</div>
+          <div class="hq-desc" id="mc-desc-random">שאלות אקראיות מכל המאגרים. הגדר כמות, מקור ורמת קושי.</div>
+        </div>
+        <div class="hq-count" id="count-random">300 שאלות</div>
+      </div>
+      <div class="hq-card" onclick="startMode('exam')" id="home-exam-card">
+        <div class="hq-accent-bar" style="background:var(--accent2)"></div>
+        <div class="hq-icon">📋</div>
+        <div class="hq-body">
+          <div class="hq-title" id="mc-title-exam">סימולציית בחינה</div>
+          <div class="hq-desc" id="mc-desc-exam">40 שאלות המדמות תנאי ISTQB אמיתיים.</div>
+        </div>
+        <div class="hq-count" id="mc-count-exam" style="color:var(--accent2);background:rgba(255,101,132,0.1)">40 שאלות</div>
+      </div>
+      <div class="hq-card" onclick="startMode('speed')">
+        <div class="hq-accent-bar" style="background:#ffaa33"></div>
+        <div class="hq-icon">⚡</div>
+        <div class="hq-body">
+          <div class="hq-title" id="mc-title-speed">מצב בזק</div>
+          <div class="hq-desc" id="mc-desc-speed">קבעו זמן לשאלה: 10–90 שניות — טעות אוטומטית אם לא עונים בזמן.</div>
+        </div>
+        <div class="hq-count" id="mc-count-speed" style="color:#ffaa33;background:rgba(255,160,50,0.1)">10–90 שנ׳</div>
+      </div>
+      <div class="hq-card" onclick="startMode('streak')">
+        <div class="hq-accent-bar" style="background:#ff6b35"></div>
+        <div class="hq-icon">🔥</div>
+        <div class="hq-body">
+          <div class="hq-title">מצב רצף</div>
+          <div class="hq-desc">טעות אחת — המשחק נגמר. עד כמה רחוק תגיעו?</div>
+        </div>
+        <div class="hq-count" id="streak-best-home" style="color:#ff6b35;background:rgba(255,107,53,0.1)">שיא: —</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section: תרגול מושגים -->
+  <div class="home-section">
+    <div class="home-section-hd">
+      <span class="home-section-tag">02</span>
+      <span class="home-section-title">תרגול מושגים</span>
+    </div>
+    <div class="home-vocab-grid">
+      <div class="hv-card" onclick="navTo('flashcards-page')">
+        <div class="hv-icon-wrap" style="background:rgba(56,215,200,0.1);border-color:rgba(56,215,200,0.25)">🃏</div>
+        <div class="hv-title" id="mc-title-flash">כרטיסיות</div>
+        <div class="hv-desc" id="mc-desc-flash">הפוך כל כרטיס לראות את ההגדרה</div>
+        <div class="hv-pill" id="mc-count-flash" style="color:#38d7c8;background:rgba(56,215,200,0.1)">324 מושגים</div>
+      </div>
+      <div class="hv-card" onclick="startMatchGame()">
+        <div class="hv-icon-wrap" style="background:rgba(67,233,123,0.1);border-color:rgba(67,233,123,0.25)">🔗</div>
+        <div class="hv-title">משחק התאמות</div>
+        <div class="hv-desc">התאם מושגים להגדרות שלהם</div>
+        <div class="hv-pill" style="color:var(--accent3);background:rgba(67,233,123,0.1)">324 מושגים</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Config -->
@@ -257,6 +307,40 @@
   </div>
 </div>
 
+<!-- Streak Config -->
+<div id="streak-config" class="screen hidden">
+  <div class="config-box">
+    <div class="config-title">מצב רצף 🔥</div>
+
+    <div class="field">
+      <label id="lbl-streak-source-field">מקור</label>
+      <div id="streak-src-checks-he" class="src-checks">
+        <label class="src-check-all"><input type="checkbox" id="streak-src-all-he" checked onchange="toggleStreakSources(this.checked)"> <span>כל המקורות</span></label>
+        <label><input type="checkbox" class="streak-src-cb" value="בחינה לדוגמא גרסה א'"> <span>גרסה א'</span></label>
+        <label><input type="checkbox" class="streak-src-cb" value="בחינה לדוגמא גרסה ב'"> <span>גרסה ב'</span></label>
+        <label><input type="checkbox" class="streak-src-cb" value="בחינה לדוגמא גרסה ג'"> <span>גרסה ג'</span></label>
+        <label><input type="checkbox" class="streak-src-cb" value="בחינה לדוגמא גרסה ד'"> <span>גרסה ד'</span></label>
+        <label><input type="checkbox" class="streak-src-cb" value="חידון מילות מפתח"> <span>מילות מפתח</span></label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>רמת קושי</label>
+      <select id="streak-sel-klevel">
+        <option value="all">כל הרמות</option>
+        <option value="K1">K1 — זכירה</option>
+        <option value="K2">K2 — הבנה</option>
+        <option value="K3">K3 — יישום</option>
+      </select>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="beginStreakMode()" style="background:#ff6b35;border-color:#ff6b35">🔥 התחל רצף</button>
+      <button class="btn btn-ghost" onclick="showScreen('home')">→ חזרה</button>
+    </div>
+  </div>
+</div>
+
 <!-- Quiz -->
 <div id="quiz" class="screen hidden">
   <div class="quiz-header">
@@ -266,6 +350,34 @@
     </div>
     <div class="prog-text" id="prog-text">1 / 20</div>
     <div class="score-badge" id="score-live">✓ 0 · ✗ 0</div>
+  </div>
+
+  <!-- Streak counter bar (only visible in streak mode) -->
+  <div id="streak-bar" class="hidden" style="direction:rtl;text-align:center;padding:0.5rem 0;margin:-0.3rem 0 0.4rem">
+    <span id="streak-counter" style="font-family:'Space Mono',monospace;font-size:1.6rem;font-weight:700;color:#ff6b35">🔥 0</span>
+    <span id="streak-best-badge" style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted);margin-right:0.8rem">שיא: —</span>
+  </div>
+
+  <!-- Streak Game Over overlay -->
+  <div id="streak-gameover" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;text-align:center;direction:rtl;max-width:380px;width:90%">
+      <div style="font-size:3.5rem;margin-bottom:0.3rem">💥</div>
+      <div style="font-size:1rem;color:var(--muted);margin-bottom:0.5rem">הרצף נשבר!</div>
+      <div id="streak-final" style="font-family:'Syne',sans-serif;font-size:3rem;font-weight:800;color:#ff6b35;line-height:1;margin-bottom:0.3rem">0</div>
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem">שאלות ברצף</div>
+      <div id="streak-new-best" class="hidden" style="background:rgba(255,107,53,0.12);border:1px solid rgba(255,107,53,0.3);border-radius:10px;padding:0.5rem 1rem;margin-bottom:1rem;font-size:0.85rem;color:#ff6b35">🏆 שיא חדש!</div>
+      <div id="streak-prev-best-line" style="font-size:0.78rem;color:var(--muted);margin-bottom:1rem"></div>
+      <div id="streak-wrong-summary" class="hidden" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0.8rem 1rem;margin-bottom:1.2rem;text-align:right;font-size:0.8rem;line-height:1.6">
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.4rem;text-align:center">השאלה שפספסת</div>
+        <div id="streak-wrong-q" style="color:var(--text);margin-bottom:0.5rem;font-weight:500"></div>
+        <div id="streak-wrong-correct" style="color:var(--success)"></div>
+        <div id="streak-wrong-chosen" style="color:var(--error)"></div>
+      </div>
+      <div style="display:flex;gap:0.7rem;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="streakRestart()" style="background:#ff6b35;border-color:#ff6b35">🔥 שחק שוב</button>
+        <button class="btn btn-ghost" onclick="streakQuit()">← בית</button>
+      </div>
+    </div>
   </div>
 
   <!-- Exam question navigation bar -->
@@ -594,6 +706,85 @@
   </div>
 </div>
 
+<!-- ══════════════════ GLOSSARY QUIZ GAME ══════════════════ -->
+<div id="glossary-game-page" class="screen hidden has-top-bar" style="direction:rtl">
+  <div class="page-title">🎮 בחן את עצמך</div>
+
+  <!-- Progress bar -->
+  <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1.2rem">
+    <span id="gg-progress-text" style="font-size:0.8rem;color:var(--muted);font-family:'Space Mono',monospace;white-space:nowrap">0 / 0</span>
+    <div style="flex:1;height:6px;background:var(--border);border-radius:100px">
+      <div id="gg-progress-fill" style="height:100%;width:0%;background:var(--accent);border-radius:100px;transition:width 0.4s"></div>
+    </div>
+    <span id="gg-score-text" style="font-size:0.8rem;color:var(--success);font-family:'Space Mono',monospace;white-space:nowrap">✓ 0</span>
+  </div>
+
+  <!-- Question card -->
+  <div id="gg-question-card" style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.4rem;margin-bottom:1.2rem;min-height:90px;display:flex;align-items:center;justify-content:center;text-align:center">
+    <div>
+      <div id="gg-question-type-label" style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.6rem"></div>
+      <div id="gg-question-text" style="font-size:1.05rem;font-weight:600;line-height:1.5;color:var(--text)"></div>
+    </div>
+  </div>
+
+  <!-- Answer options -->
+  <div id="gg-options" style="display:grid;gap:0.6rem;margin-bottom:1.2rem"></div>
+
+  <!-- Feedback + next -->
+  <div id="gg-feedback" class="hidden" style="text-align:center;padding:0.7rem;border-radius:12px;margin-bottom:0.8rem;font-size:0.9rem"></div>
+  <div style="display:flex;gap:0.6rem;justify-content:center">
+    <button class="btn btn-ghost" onclick="endGlossaryGame()" style="font-size:0.82rem">✕ סיים</button>
+    <button id="gg-next-btn" class="btn btn-primary hidden" onclick="ggNextQuestion()" style="font-size:0.9rem">הבא ←</button>
+  </div>
+
+  <!-- End screen -->
+  <div id="gg-end" class="hidden" style="text-align:center;padding:2rem 1rem">
+    <div style="font-size:3rem;margin-bottom:0.5rem">🏆</div>
+    <div id="gg-end-score" style="font-size:1.5rem;font-weight:700;color:var(--accent);margin-bottom:0.4rem"></div>
+    <div id="gg-end-msg" style="color:var(--muted);margin-bottom:1.5rem;font-size:0.9rem"></div>
+    <div style="display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="startGlossaryGame()">▶ שחק שוב</button>
+      <button class="btn btn-ghost" onclick="endGlossaryGame()">← חזור</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ MATCH GAME ══════════════════ -->
+<div id="match-game-page" class="screen hidden has-top-bar" style="direction:rtl">
+  <div class="page-title">🔗 משחק התאמות</div>
+
+  <div style="display:flex;align-items:center;gap:0.7rem;margin-bottom:1rem">
+    <span id="mg-round-text" style="font-size:0.8rem;color:var(--muted);font-family:'Space Mono',monospace">סט 1</span>
+    <div style="flex:1;height:6px;background:var(--border);border-radius:100px">
+      <div id="mg-progress-fill" style="height:100%;width:0%;background:var(--accent3);border-radius:100px;transition:width 0.4s"></div>
+    </div>
+    <span id="mg-score-text" style="font-size:0.8rem;color:var(--success);font-family:'Space Mono',monospace">✓ 0 זוגות</span>
+  </div>
+
+  <div id="mg-timer-bar" style="text-align:center;margin-bottom:0.7rem">
+    <span id="mg-timer" style="font-size:0.85rem;color:var(--warning);font-family:'Space Mono',monospace">⏱ 0:00</span>
+  </div>
+
+  <!-- Two columns: terms | definitions -->
+  <div id="mg-board" style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:1.2rem"></div>
+
+  <div id="mg-feedback" class="hidden" style="text-align:center;padding:0.6rem;border-radius:10px;margin-bottom:0.8rem;font-size:0.88rem"></div>
+  <div style="display:flex;gap:0.6rem;justify-content:center">
+    <button class="btn btn-ghost" onclick="endMatchGame()" style="font-size:0.82rem">✕ סיים</button>
+  </div>
+
+  <!-- End screen -->
+  <div id="mg-end" class="hidden" style="text-align:center;padding:2rem 1rem">
+    <div style="font-size:3rem;margin-bottom:0.5rem">🎉</div>
+    <div id="mg-end-score" style="font-size:1.4rem;font-weight:700;color:var(--accent3);margin-bottom:0.4rem"></div>
+    <div id="mg-end-msg" style="color:var(--muted);margin-bottom:1.5rem;font-size:0.9rem"></div>
+    <div style="display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="startMatchGame()">▶ סט חדש</button>
+      <button class="btn btn-ghost" onclick="endMatchGame()">← חזור</button>
+    </div>
+  </div>
+</div>
+
 <!-- Sidebar Nav -->
 <nav class="sidebar collapsed" id="global-nav">
   <div class="sidebar-header">
@@ -605,48 +796,56 @@
     <span class="nav-icon">🏠</span>בית
   </button>
 
-  <hr class="nav-divider">
   <div class="nav-section-label" id="nav-label-modes">חידונים</div>
   <button class="nav-btn" onclick="navStartMode('random')">
-    <span class="nav-icon">🎲</span><span id="nav-lbl-random">חידון אקראי</span>
+    <span class="nav-icon">🎲</span><span id="nav-lbl-random">אקראי</span>
   </button>
   <button class="nav-btn" onclick="navStartMode('exam')">
-    <span class="nav-icon">📋</span><span id="nav-lbl-exam">סימולציית בחינה</span>
+    <span class="nav-icon">📋</span><span id="nav-lbl-exam">סימולציה</span>
   </button>
   <button class="nav-btn" onclick="navStartMode('speed')">
-    <span class="nav-icon">⚡</span><span id="nav-lbl-speed">שאלות על זמן</span>
+    <span class="nav-icon">⚡</span><span id="nav-lbl-speed">בזק</span>
   </button>
+  <button class="nav-btn" onclick="navStartMode('streak')">
+    <span class="nav-icon">🔥</span><span>רצף</span>
+  </button>
+
+  <div class="nav-section-label">תרגול מושגים</div>
   <button class="nav-btn" id="nav-flash" onclick="navTo('flashcards-page')">
     <span class="nav-icon">🃏</span><span>כרטיסיות</span>
   </button>
+  <button class="nav-btn" onclick="startMatchGame()">
+    <span class="nav-icon">🔗</span><span>התאמות</span>
+  </button>
 
-  <hr class="nav-divider">
   <div class="nav-section-label" id="nav-label-saved">שמור</div>
   <button class="nav-btn" onclick="navStartMode('wrong')">
-    <span class="nav-icon">❌</span><span id="nav-lbl-wrong">שגיאות (<span id="nav-count-wrong">0</span>)</span>
+    <span class="nav-icon">❌</span><span id="nav-lbl-wrong">שגיאות <span class="nav-count-badge" id="nav-count-wrong">0</span></span>
   </button>
   <button class="nav-btn" id="nav-saved" onclick="navTo('saved-page')">
-    <span class="nav-icon">⭐</span><span id="nav-lbl-starred">מסומנות ועם הערות (<span id="nav-count-starred">0</span>)</span>
+    <span class="nav-icon">⭐</span><span id="nav-lbl-starred">מסומנות <span class="nav-count-badge" id="nav-count-starred">0</span></span>
   </button>
 
-  <hr class="nav-divider">
-  <div class="nav-section-label">כללי</div>
-  <button class="nav-btn" id="nav-stats" onclick="navTo('stats-page')">
-    <span class="nav-icon">📊</span>סטטיסטיקות
-  </button>
-  <button class="nav-btn" id="nav-about" onclick="navTo('about-page')">
-    <span class="nav-icon">ℹ️</span>אודות
-  </button>
-
-  <button class="nav-btn nav-btn-report" onclick="reportGeneral()">
-    <span class="nav-icon">🐛</span>דיווח על בעיה
-  </button>
-
-  <hr class="nav-divider" style="margin-top:auto">
-  <div class="nav-theme-row">
-    <span class="nav-theme-label" id="nav-theme-label">מצב לילה</span>
-    <button class="theme-switch" id="theme-switch-btn" onclick="toggleTheme()" title="החלף מצב תצוגה"></button>
+  <div class="nav-bottom">
+    <button class="nav-btn" id="nav-stats" onclick="navTo('stats-page')">
+      <span class="nav-icon">📊</span>סטטיסטיקות
+    </button>
+    <button class="nav-btn" id="nav-about" onclick="navTo('about-page')">
+      <span class="nav-icon">ℹ️</span>אודות
+    </button>
+    <button class="nav-btn nav-btn-report" onclick="reportGeneral()">
+      <span class="nav-icon">🐛</span>דיווח בעיה
+    </button>
+    <div class="nav-theme-row">
+      <span class="nav-theme-label" id="nav-theme-label">מצב לילה</span>
+      <button class="theme-switch" id="theme-switch-btn" onclick="toggleTheme()" title="החלף מצב תצוגה"></button>
+    </div>
+    <div class="nav-theme-row">
+      <span class="nav-theme-label">סאונד</span>
+      <button class="theme-switch on" id="sfx-switch-btn" onclick="toggleSfx()" title="הפעל/כבה סאונד"></button>
+    </div>
   </div>
+</nav>
 </nav>
 
 <!-- Sidebar Toggle Button -->

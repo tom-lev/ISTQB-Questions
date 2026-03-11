@@ -440,21 +440,22 @@ window._questionsReady = false;
 window._authReady      = false;
 
 function showScreen(id) {
-  ['loading','home','config','exam-config','quiz','results','stats-page','about-page','saved-page','flashcards-page'].forEach(s => {
+  ['loading','home','config','exam-config','streak-config','quiz','results','stats-page','about-page','saved-page','flashcards-page','glossary-game-page','match-game-page'].forEach(s => {
     const el = document.getElementById(s);
     if (el) el.classList.add('hidden');
   });
   document.getElementById(id).classList.remove('hidden');
+  window.scrollTo(0, 0);
   const nav = document.getElementById('global-nav');
   const toggleBtn = document.getElementById('sidebar-toggle-btn');
   const logoBar = document.getElementById('top-logo-bar');
-  const noNav = ['loading','config','exam-config','quiz','results'];
+  const noNav = ['loading','config','exam-config','streak-config','quiz','results'];
   const hide = noNav.includes(id);
   if (nav) {
     nav.classList.toggle('hidden-nav', hide);
     if (toggleBtn) toggleBtn.style.display = hide ? 'none' : 'flex';
   }
-  const showLogo = ['stats-page','about-page','saved-page','flashcards-page'].includes(id);
+  const showLogo = ['stats-page','about-page','saved-page','flashcards-page','glossary-game-page','match-game-page'].includes(id);
   if (logoBar) logoBar.classList.toggle('hidden', !showLogo);
   const guestBanner = document.getElementById('login-wall');
   if (guestBanner && !window._currentUser) {
@@ -473,7 +474,7 @@ function toggleSidebar() {
 
 function navTo(page) {
   showScreen(page);
-  ['home','stats-page','about-page','saved-page','flashcards-page'].forEach(p => {
+  ['home','stats-page','about-page','saved-page','flashcards-page','glossary-game-page','match-game-page'].forEach(p => {
     const key = p === 'home' ? 'nav-home'
               : p === 'stats-page' ? 'nav-stats'
               : p === 'about-page' ? 'nav-about'
@@ -519,15 +520,36 @@ function updateStatsPage() {
     if (QUIZ_HISTORY.length === 0) {
       histEl.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;text-align:center;padding:1rem">עדיין אין היסטוריה — השלם חידון כדי להתחיל</div>';
     } else {
-      const modeNames = { random: '🎲 אקראי', exam: '📋 סימולציה', wrong: '⚡ שגיאות', source: '📚 לפי מקור' };
+      const modeNames = { random: '🎲 אקראי', exam: '📋 סימולציה', wrong: '⚡ שגיאות', source: '📚 לפי מקור', speed: '⚡ מהירות', streak: '🔥 רצף' };
       histEl.innerHTML = [...QUIZ_HISTORY].reverse().map(h => {
         const d = new Date(h.date);
         const dateStr = d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'});
         const pass = h.passed;
+
+        // Sources
+        const srcLine = (h.sources && h.sources.length > 0)
+          ? `<div class="hi-detail">📚 ${h.sources.join(', ')}</div>`
+          : '';
+
+        // K-levels
+        const kLine = (h.kLevels && h.kLevels.length > 0)
+          ? `<div class="hi-detail">🎯 ${h.kLevels.join(' · ')}</div>`
+          : '';
+
+        // Duration (only for exam mode)
+        const durLine = (h.mode === 'exam' && h.duration != null)
+          ? (() => {
+              const m = Math.floor(h.duration / 60);
+              const s = h.duration % 60;
+              return `<div class="hi-detail">⏱️ ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} דקות</div>`;
+            })()
+          : '';
+
         return `<div class="history-item">
           <div class="hi-score ${pass ? 'pass' : 'fail'}">${h.score}%</div>
           <div class="hi-meta">
             <div>${modeNames[h.mode] || h.mode} · ${h.correct}/${h.total} נכון</div>
+            ${srcLine}${kLine}${durLine}
             <div style="font-size:0.72rem;margin-top:0.2rem">${dateStr}</div>
           </div>
           <div class="hi-badge ${pass ? 'pass' : 'fail'}">${pass ? 'עבר' : 'נכשל'}</div>
@@ -602,6 +624,8 @@ function startMode(mode) {
     showScreen('config');
   } else if (mode === 'exam') {
     showScreen('exam-config');
+  } else if (mode === 'streak') {
+    showScreen('streak-config');
   } else if (mode === 'wrong') {
     const wqs = ACTIVE_Q.filter((q, i) => WRONG_IDS.includes(i));
     if (wqs.length === 0) {
@@ -1069,10 +1093,14 @@ async function submitMultiAnswer(q) {
   if (isCorrect) {
     SESSION.correct++;
     SESSION.answers[SESSION.idx] = { q, chosen: chosen[0], correct: true, chosenMulti: chosen };
+    SFX.correct();
+    if (SESSION.mode === 'streak') streakOnCorrect();
   } else {
     SESSION.wrong++;
     SESSION.answers[SESSION.idx] = { q, chosen: chosen[0], correct: false, chosenMulti: chosen };
     if (gIdx >= 0 && !WRONG_IDS.includes(gIdx)) WRONG_IDS.push(gIdx);
+    SFX.wrong();
+    if (SESSION.mode === 'streak') { setTimeout(streakGameOver, 2500); return; }
   }
 
   await persistData();
@@ -1085,6 +1113,7 @@ async function submitMultiAnswer(q) {
   }
   document.getElementById('btn-skip').classList.add('hidden');
   document.getElementById('btn-next').classList.remove('hidden');
+  document.getElementById('score-live').textContent = `✓ ${SESSION.correct} · ✗ ${SESSION.wrong}`;
   updateExamFooter();
   if (SESSION.mode === 'exam') renderExamNavBar();
 }
@@ -1115,6 +1144,8 @@ async function selectOption(idx) {
     opts[idx].classList.add('correct');
     SESSION.correct++;
     SESSION.answers[SESSION.idx] = { q, chosen: idx, correct: true };
+    SFX.correct();
+    if (SESSION.mode === 'streak') streakOnCorrect();
   } else {
     opts[idx].classList.add('wrong');
     opts[q.ans].classList.add('correct');
@@ -1124,6 +1155,8 @@ async function selectOption(idx) {
     if (globalIdx >= 0 && !WRONG_IDS.includes(globalIdx)) {
       WRONG_IDS.push(globalIdx);
     }
+    SFX.wrong();
+    if (SESSION.mode === 'streak') { setTimeout(streakGameOver, 2500); return; }
   }
 
   await persistData();
@@ -1195,7 +1228,7 @@ function skipQuestion() {
   advanceOrFinish();
 }
 
-function nextQuestion() { advanceOrFinish(); }
+function nextQuestion() { SFX.nextQuestion(); advanceOrFinish(); }
 
 function advanceOrFinish() {
   if (SESSION.mode === 'exam') {
@@ -1243,6 +1276,8 @@ async function showResults() {
   const pass = pct >= 65;
   const he = CURRENT_LANG === 'he';
 
+  setTimeout(() => pass ? SFX.quizWin() : SFX.quizFail(), 300);
+
   if (!BEST || pct > BEST) {
     BEST = pct;
     await persistData();
@@ -1286,6 +1321,11 @@ async function showResults() {
   updateWrongCount();
 
   // Save quiz to local history + cloud
+  const _sessionSrcs = [...new Set(SESSION.questions.map(q => q.src).filter(Boolean))];
+  const _sessionKs   = [...new Set(SESSION.questions.map(q => q.k_level || q.k).filter(Boolean))].sort();
+  const _examDuration = (SESSION.mode === 'exam' && EXAM_START_TIME)
+    ? Math.round((Date.now() - EXAM_START_TIME) / 1000)
+    : null;
   const historyEntry = {
     date: new Date().toISOString(),
     mode: SESSION.mode,
@@ -1294,7 +1334,10 @@ async function showResults() {
     wrong: SESSION.wrong,
     skipped: SESSION.skipped,
     score: pct,
-    passed: pass
+    passed: pass,
+    sources:  _sessionSrcs,
+    kLevels:  _sessionKs,
+    duration: _examDuration
   };
   QUIZ_HISTORY.push(historyEntry);
   if (window._fbSaveQuizHistory && window._currentUser) {
@@ -1698,10 +1741,12 @@ function clearSpeedTimer() {
 // ── Exam Mode Countdown Timer (60 min) ──
 let EXAM_TIMER_INTERVAL = null;
 let EXAM_TIMER_SECONDS  = 0;
+let EXAM_START_TIME     = null;
 
 function startExamTimer() {
   clearExamTimer();
   EXAM_TIMER_SECONDS = 60 * 60;
+  EXAM_START_TIME    = Date.now();
   const display = document.getElementById('exam-timer-display');
   const fill    = document.getElementById('exam-timer-fill');
   if (fill) { fill.style.transition = 'none'; fill.style.width = '100%'; }
@@ -1941,6 +1986,7 @@ function renderGrid() {
       </div>`;
     card.addEventListener('click', e => {
       if (e.target.classList.contains('fc-known-btn')) return;
+      SFX.flipCard();
       card.classList.toggle('flipped');
     });
     grid.appendChild(card);
@@ -2003,7 +2049,7 @@ function renderOne(entryDir) {
 
   // Tap to flip
   const stage = document.getElementById('fco-stage');
-  stage.onclick = () => cardEl.classList.toggle('flipped');
+  stage.onclick = () => { SFX.flipCard(); cardEl.classList.toggle('flipped'); };
 
   // Touch/swipe support
   fcInitSwipe(stage);
@@ -2027,6 +2073,7 @@ function fcoMarkKnown() {
     FC_KNOWN.delete(item.id);
   } else {
     FC_KNOWN.add(item.id);
+    SFX.markKnown();
   }
   updateFcProgress();
   // Update card + button state without navigating
@@ -2231,3 +2278,628 @@ document.addEventListener('keydown', e => {
 })();
 
 loadQuestions(); // loads questions.json; init() fires only after auth resolves
+
+// ═══════════════════════════════════════════════════════════════
+// GLOSSARY QUIZ GAME
+// ═══════════════════════════════════════════════════════════════
+
+let GG_POOL = [];       // shuffled questions for this session
+let GG_IDX  = 0;        // current question index
+let GG_CORRECT = 0;     // correct answers
+let GG_ANSWERED = false;// has the user answered the current q
+
+function startGlossaryGame() {
+  if (!ALL_GLOSSARY || ALL_GLOSSARY.length < 4) {
+    alert('המילון לא נטען עדיין. נסה שוב.');
+    return;
+  }
+  // Build pool: 20 questions, alternating term→def and def→term randomly
+  const pool = shuffle([...ALL_GLOSSARY]).slice(0, 20);
+  GG_POOL = pool.map(item => {
+    const mode = Math.random() < 0.5 ? 'term2def' : 'def2term';
+    return { item, mode };
+  });
+  GG_IDX = 0;
+  GG_CORRECT = 0;
+  GG_ANSWERED = false;
+
+  // Show page
+  document.getElementById('gg-end').classList.add('hidden');
+  document.getElementById('gg-question-card').classList.remove('hidden');
+  document.getElementById('gg-options').classList.remove('hidden');
+  navTo('glossary-game-page');
+  ggRenderQuestion();
+}
+
+function endGlossaryGame() {
+  navTo('flashcards-page');
+}
+
+function ggRenderQuestion() {
+  if (GG_IDX >= GG_POOL.length) {
+    ggShowEnd();
+    return;
+  }
+  GG_ANSWERED = false;
+  const { item, mode } = GG_POOL[GG_IDX];
+  const total = GG_POOL.length;
+
+  // Progress
+  document.getElementById('gg-progress-text').textContent = `${GG_IDX + 1} / ${total}`;
+  document.getElementById('gg-progress-fill').style.width = ((GG_IDX / total) * 100) + '%';
+  document.getElementById('gg-score-text').textContent = `✓ ${GG_CORRECT}`;
+  document.getElementById('gg-feedback').classList.add('hidden');
+  document.getElementById('gg-next-btn').classList.add('hidden');
+
+  // Question text
+  const typeLabel = document.getElementById('gg-question-type-label');
+  const questionText = document.getElementById('gg-question-text');
+  if (mode === 'term2def') {
+    typeLabel.textContent = 'מה ההגדרה של המושג?';
+    questionText.textContent = item.term;
+    questionText.style.fontSize = '1.15rem';
+  } else {
+    typeLabel.textContent = 'לאיזה מושג מתאימה ההגדרה?';
+    questionText.textContent = item.definition;
+    questionText.style.fontSize = '0.88rem';
+  }
+
+  // Pick 3 distractors
+  const distractors = shuffle(ALL_GLOSSARY.filter(x => x.id !== item.id)).slice(0, 3);
+  const options = shuffle([item, ...distractors]);
+
+  // Render options
+  const optEl = document.getElementById('gg-options');
+  optEl.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'gg-option-btn';
+    btn.textContent = mode === 'term2def' ? opt.definition : opt.term;
+    btn.dataset.id = opt.id;
+    btn.addEventListener('click', () => ggAnswer(opt.id === item.id, btn));
+    optEl.appendChild(btn);
+  });
+}
+
+function ggAnswer(isCorrect, btn) {
+  if (GG_ANSWERED) return;
+  GG_ANSWERED = true;
+  if (isCorrect) {
+    GG_CORRECT++;
+    SFX.correct();
+  } else {
+    SFX.wrong();
+  }
+
+  // Style all buttons
+  const optEl = document.getElementById('gg-options');
+  const { item } = GG_POOL[GG_IDX];
+  const mode = GG_POOL[GG_IDX].mode;
+  optEl.querySelectorAll('.gg-option-btn').forEach(b => {
+    const bid = parseInt(b.dataset.id);
+    if (bid === item.id) {
+      b.classList.add('gg-correct');
+    } else if (b === btn && !isCorrect) {
+      b.classList.add('gg-wrong');
+    }
+    b.disabled = true;
+  });
+
+  // Feedback
+  const fb = document.getElementById('gg-feedback');
+  fb.classList.remove('hidden');
+  if (isCorrect) {
+    fb.textContent = '✓ נכון!';
+    fb.style.cssText = 'background:rgba(67,233,123,0.12);color:var(--success);text-align:center;padding:0.7rem;border-radius:12px;margin-bottom:0.8rem;font-size:0.9rem;border:1px solid rgba(67,233,123,0.3)';
+  } else {
+    const correctOpt = mode === 'term2def' ? item.definition : item.term;
+    fb.innerHTML = `✗ לא נכון. <span style="color:var(--success)">התשובה הנכונה:</span> ${correctOpt}`;
+    fb.style.cssText = 'background:rgba(255,101,132,0.1);color:var(--error);text-align:center;padding:0.7rem;border-radius:12px;margin-bottom:0.8rem;font-size:0.88rem;border:1px solid rgba(255,101,132,0.3)';
+  }
+  document.getElementById('gg-next-btn').classList.remove('hidden');
+}
+
+function ggNextQuestion() {
+  GG_IDX++;
+  ggRenderQuestion();
+}
+
+function ggShowEnd() {
+  document.getElementById('gg-question-card').classList.add('hidden');
+  document.getElementById('gg-options').classList.add('hidden');
+  document.getElementById('gg-feedback').classList.add('hidden');
+  document.getElementById('gg-next-btn').classList.add('hidden');
+  document.getElementById('gg-end').classList.remove('hidden');
+
+  const total = GG_POOL.length;
+  const pct = Math.round((GG_CORRECT / total) * 100);
+  document.getElementById('gg-end-score').textContent = `${GG_CORRECT} / ${total} נכונות (${pct}%)`;
+  let msg = '';
+  if (pct >= 90) msg = '🔥 מושלם! שלטת במיליון מושגים!';
+  else if (pct >= 70) msg = '👍 כל הכבוד! תוצאה טובה מאוד.';
+  else if (pct >= 50) msg = '📚 סביר — כדאי לחזור על הכרטיסיות.';
+  else msg = '💪 יש מקום לשיפור. תמשיך לתרגל!';
+  document.getElementById('gg-end-msg').textContent = msg;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// MATCH GAME
+// ═══════════════════════════════════════════════════════════════
+
+let MG_PAIRS = [];          // current 5 pairs [{id, term, definition}]
+let MG_SELECTED = null;     // {type:'term'|'def', id, el}
+let MG_MATCHED = new Set(); // matched ids
+let MG_ERRORS = 0;
+let MG_TOTAL_MATCHED = 0;
+let MG_TOTAL_ROUNDS = 0;
+let MG_TIMER_START = 0;
+let MG_TIMER_INT = null;
+let MG_TOTAL_SETS = 0;
+
+const MG_SET_SIZE = 5;
+
+function startMatchGame() {
+  if (!ALL_GLOSSARY || ALL_GLOSSARY.length < MG_SET_SIZE) {
+    alert('המילון לא נטען עדיין.');
+    return;
+  }
+  MG_TOTAL_MATCHED = 0;
+  MG_TOTAL_ROUNDS = 0;
+  MG_ERRORS = 0;
+  MG_TOTAL_SETS = Math.floor(ALL_GLOSSARY.length / MG_SET_SIZE); // how many sets available
+  MG_REMAINING_POOL = shuffle([...ALL_GLOSSARY]);
+
+  document.getElementById('mg-end').classList.add('hidden');
+  document.getElementById('mg-board').classList.remove('hidden');
+  navTo('match-game-page');
+  mgNextRound();
+}
+
+function endMatchGame() {
+  clearInterval(MG_TIMER_INT);
+  navTo('home');
+}
+
+function mgNextRound() {
+  MG_MATCHED = new Set();
+  MG_SELECTED = null;
+  MG_TOTAL_ROUNDS++;
+
+  // Take next 5 items
+  if (!MG_REMAINING_POOL || MG_REMAINING_POOL.length < MG_SET_SIZE) {
+    MG_REMAINING_POOL = shuffle([...ALL_GLOSSARY]);
+  }
+  MG_PAIRS = MG_REMAINING_POOL.splice(0, MG_SET_SIZE);
+
+  // Update header
+  document.getElementById('mg-round-text').textContent = `סט ${MG_TOTAL_ROUNDS}`;
+  document.getElementById('mg-score-text').textContent = `✓ ${MG_TOTAL_MATCHED} זוגות`;
+  document.getElementById('mg-progress-fill').style.width = '0%';
+  document.getElementById('mg-feedback').classList.add('hidden');
+
+  // Start timer
+  clearInterval(MG_TIMER_INT);
+  MG_TIMER_START = Date.now();
+  MG_TIMER_INT = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - MG_TIMER_START) / 1000);
+    const m = Math.floor(elapsed / 60);
+    const s = elapsed % 60;
+    const el = document.getElementById('mg-timer');
+    if (el) el.textContent = `⏱ ${m}:${String(s).padStart(2,'0')}`;
+  }, 500);
+
+  mgRenderBoard();
+}
+
+function mgRenderBoard() {
+  const board = document.getElementById('mg-board');
+  board.innerHTML = '';
+
+  const terms = shuffle([...MG_PAIRS]);
+
+  // Ensure defs order never matches terms order (no same-row pair)
+  let defs;
+  let attempts = 0;
+  do {
+    defs = shuffle([...MG_PAIRS]);
+    attempts++;
+  } while (attempts < 20 && defs.some((d, i) => d.id === terms[i].id));
+
+  // Render as rows: each row has one term tile and one def tile
+  terms.forEach((p, i) => {
+    const termBtn = document.createElement('button');
+    termBtn.className = 'mg-tile mg-term';
+    termBtn.dataset.id   = p.id;
+    termBtn.dataset.type = 'term';
+    termBtn.textContent  = p.term;
+    termBtn.addEventListener('click', () => mgSelect(termBtn));
+    board.appendChild(termBtn);
+
+    const defBtn = document.createElement('button');
+    defBtn.className = 'mg-tile mg-def';
+    defBtn.dataset.id   = defs[i].id;
+    defBtn.dataset.type = 'def';
+    defBtn.textContent  = defs[i].definition;
+    defBtn.addEventListener('click', () => mgSelect(defBtn));
+    board.appendChild(defBtn);
+  });
+}
+
+function mgSelect(el) {
+  if (el.classList.contains('mg-matched') || el.classList.contains('mg-wrong')) return;
+
+  const type = el.dataset.type;
+  const id   = parseInt(el.dataset.id);
+
+  if (!MG_SELECTED) {
+    // First selection
+    MG_SELECTED = { type, id, el };
+    el.classList.add('mg-active');
+    return;
+  }
+
+  if (MG_SELECTED.el === el) {
+    // Deselect same
+    el.classList.remove('mg-active');
+    MG_SELECTED = null;
+    return;
+  }
+
+  if (MG_SELECTED.type === type) {
+    // Same column — switch selection
+    MG_SELECTED.el.classList.remove('mg-active');
+    MG_SELECTED = { type, id, el };
+    el.classList.add('mg-active');
+    return;
+  }
+
+  // Check match
+  MG_SELECTED.el.classList.remove('mg-active');
+  const prevEl = MG_SELECTED.el;
+  const prevId = MG_SELECTED.id;
+  MG_SELECTED = null;
+
+  if (prevId === id) {
+    // ✓ Match!
+    prevEl.classList.add('mg-matched');
+    el.classList.add('mg-matched');
+    MG_MATCHED.add(id);
+    MG_TOTAL_MATCHED++;
+    SFX.match();
+    document.getElementById('mg-score-text').textContent = `✓ ${MG_TOTAL_MATCHED} זוגות`;
+    document.getElementById('mg-progress-fill').style.width = ((MG_MATCHED.size / MG_SET_SIZE) * 100) + '%';
+
+    // Flash green
+    [prevEl, el].forEach(b => {
+      b.classList.add('mg-flash-correct');
+      setTimeout(() => b.classList.remove('mg-flash-correct'), 500);
+    });
+
+    // Round complete?
+    if (MG_MATCHED.size === MG_SET_SIZE) {
+      setTimeout(mgRoundComplete, 600);
+    }
+  } else {
+    // ✗ Wrong
+    MG_ERRORS++;
+    SFX.matchWrong();
+    [prevEl, el].forEach(b => {
+      b.classList.add('mg-wrong');
+      setTimeout(() => b.classList.remove('mg-wrong'), 800);
+    });
+  }
+}
+
+function mgRoundComplete() {
+  clearInterval(MG_TIMER_INT);
+  SFX.roundComplete();
+  const elapsed = Math.floor((Date.now() - MG_TIMER_START) / 1000);
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+
+  const fb = document.getElementById('mg-feedback');
+  fb.classList.remove('hidden');
+  fb.textContent = `✓ הושלם ב-${m}:${String(s).padStart(2,'0')} עם ${MG_ERRORS} שגיאות בסט זה`;
+  fb.style.cssText = 'text-align:center;padding:0.6rem;border-radius:10px;margin-bottom:0.8rem;font-size:0.88rem;background:rgba(67,233,123,0.12);color:var(--success);border:1px solid rgba(67,233,123,0.3)';
+
+  MG_ERRORS = 0; // reset per-round errors
+
+  setTimeout(() => {
+    mgNextRound();
+  }, 1800);
+}
+
+let MG_REMAINING_POOL = [];
+
+
+// ═══════════════════════════════════════════════════════════════
+// STREAK MODE
+// ═══════════════════════════════════════════════════════════════
+
+let STREAK_CURRENT = 0;
+let STREAK_BEST    = 0;  // session best; loaded from localStorage
+
+(function loadStreakBest() {
+  try { STREAK_BEST = parseInt(localStorage.getItem('istqb_streak_best')) || 0; } catch(e) {}
+})();
+
+function saveStreakBest() {
+  try { localStorage.setItem('istqb_streak_best', STREAK_BEST); } catch(e) {}
+}
+
+function toggleStreakSources(checked) {
+  document.querySelectorAll('.streak-src-cb').forEach(cb => cb.checked = checked);
+}
+
+function getStreakSelectedSources() {
+  const allCb = document.getElementById('streak-src-all-he');
+  if (allCb && allCb.checked) return [];
+  return [...document.querySelectorAll('.streak-src-cb:checked')].map(cb => cb.value);
+}
+
+window.beginStreakMode = function() {
+  const sources = getStreakSelectedSources();
+  const klevel  = document.getElementById('streak-sel-klevel')?.value || 'all';
+
+  let pool = [...ACTIVE_Q];
+  if (sources.length > 0) pool = pool.filter(q => sources.includes(q.src));
+  if (klevel !== 'all')   pool = pool.filter(q => (q.k_level || q.k) === klevel);
+
+  const he = CURRENT_LANG === 'he';
+  if (pool.length === 0) {
+    alert(he ? 'אין שאלות עבור הסינון שנבחר.' : 'No questions match the selected filters.');
+    return;
+  }
+  startStreakMode(pool);
+};
+
+function startStreakMode(pool) {
+  STREAK_CURRENT = 0;
+  if (!pool) pool = [...ACTIVE_Q];
+  SESSION.mode = 'streak';
+  runQuiz(shuffle(pool));
+
+  // Show streak bar, hide normal score
+  const streakBar = document.getElementById('streak-bar');
+  const scoreBadge = document.getElementById('score-live');
+  if (streakBar)  streakBar.classList.remove('hidden');
+  if (scoreBadge) scoreBadge.classList.add('hidden');
+
+  updateStreakDisplay();
+  updateStreakBestBadge();
+
+  // Hide skip button in streak mode
+  const btnSkip = document.getElementById('btn-skip');
+  if (btnSkip) btnSkip.classList.add('hidden');
+}
+
+function streakOnCorrect() {
+  STREAK_CURRENT++;
+  updateStreakDisplay();
+
+  // Milestone sounds: every 5 correct in a row
+  if (STREAK_CURRENT > 0 && STREAK_CURRENT % 5 === 0) {
+    SFX.roundComplete();
+  }
+}
+
+function updateStreakDisplay() {
+  const el = document.getElementById('streak-counter');
+  if (el) {
+    const emoji = STREAK_CURRENT >= 20 ? '🏆' : STREAK_CURRENT >= 10 ? '⚡' : '🔥';
+    el.textContent = `${emoji} ${STREAK_CURRENT}`;
+    // Pulse animation on update
+    el.style.transform = 'scale(1.3)';
+    setTimeout(() => { el.style.transform = 'scale(1)'; el.style.transition = 'transform 0.2s'; }, 150);
+  }
+}
+
+function updateStreakBestBadge() {
+  const el = document.getElementById('streak-best-badge');
+  if (el) el.textContent = `שיא: ${STREAK_BEST || '—'}`;
+  // Also update home card
+  const homeEl = document.getElementById('streak-best-home');
+  if (homeEl) homeEl.textContent = `שיא: ${STREAK_BEST || '—'}`;
+}
+
+function streakGameOver() {
+  const isNewBest = STREAK_CURRENT > STREAK_BEST;
+  if (isNewBest) {
+    STREAK_BEST = STREAK_CURRENT;
+    saveStreakBest();
+    updateStreakBestBadge();
+  }
+
+  const overlay      = document.getElementById('streak-gameover');
+  const finalEl      = document.getElementById('streak-final');
+  const newBestEl    = document.getElementById('streak-new-best');
+  const prevBestLine = document.getElementById('streak-prev-best-line');
+
+  if (finalEl)    finalEl.textContent = STREAK_CURRENT;
+  if (newBestEl)  newBestEl.classList.toggle('hidden', !isNewBest);
+  if (prevBestLine) {
+    prevBestLine.textContent = isNewBest
+      ? `השיא הקודם שלך היה ${STREAK_BEST === STREAK_CURRENT ? 0 : STREAK_BEST}`
+      : `השיא שלך: ${STREAK_BEST}`;
+  }
+
+  // Show the question that was answered wrong
+  const wrongAnswer = SESSION.answers[SESSION.idx];
+  const wrongSummary = document.getElementById('streak-wrong-summary');
+  if (wrongAnswer && wrongAnswer.q && wrongSummary) {
+    const q = wrongAnswer.q;
+    const he = CURRENT_LANG === 'he';
+    const letters = he ? ['א','ב','ג','ד','ה','ו'] : ['A','B','C','D','E','F'];
+    const correctArr = Array.isArray(q.ans) ? q.ans : [q.ans];
+    const correctText = correctArr.map(i => `${letters[i]}) ${q.opts[i]}`).join(' + ');
+    const chosenIdxs = wrongAnswer.chosenMulti || (wrongAnswer.chosen >= 0 ? [wrongAnswer.chosen] : []);
+    const chosenText = chosenIdxs.length > 0
+      ? chosenIdxs.map(i => `${letters[i]}) ${q.opts[i]}`).join(' + ')
+      : (he ? 'לא נבחר' : 'None');
+
+    document.getElementById('streak-wrong-q').textContent = q.q.length > 100 ? q.q.slice(0, 100) + '…' : q.q;
+    document.getElementById('streak-wrong-correct').textContent = `✓ ${he ? 'נכון' : 'Correct'}: ${correctText}`;
+    document.getElementById('streak-wrong-chosen').textContent  = `✗ ${he ? 'בחרת' : 'You chose'}: ${chosenText}`;
+    wrongSummary.classList.remove('hidden');
+  } else if (wrongSummary) {
+    wrongSummary.classList.add('hidden');
+  }
+
+  if (overlay) overlay.classList.remove('hidden');
+  SFX.quizFail();
+}
+
+function streakRestart() {
+  const overlay = document.getElementById('streak-gameover');
+  if (overlay) overlay.classList.add('hidden');
+  showScreen('streak-config');
+}
+
+function streakQuit() {
+  const overlay = document.getElementById('streak-gameover');
+  if (overlay) overlay.classList.add('hidden');
+  // Restore UI
+  const streakBar = document.getElementById('streak-bar');
+  const scoreBadge = document.getElementById('score-live');
+  if (streakBar)  streakBar.classList.add('hidden');
+  if (scoreBadge) scoreBadge.classList.remove('hidden');
+  navTo('home');
+}
+
+// Make sure streak UI resets when leaving quiz normally
+const _origShowScreen = window.showScreen;
+window.showScreen = function(id) {
+  if (id !== 'quiz' && SESSION.mode === 'streak') {
+    const streakBar  = document.getElementById('streak-bar');
+    const scoreBadge = document.getElementById('score-live');
+    const overlay    = document.getElementById('streak-gameover');
+    if (streakBar)  streakBar.classList.add('hidden');
+    if (scoreBadge) scoreBadge.classList.remove('hidden');
+    if (overlay)    overlay.classList.add('hidden');
+  }
+  if (_origShowScreen) return _origShowScreen.call(this, id);
+};
+
+
+// ═══════════════════════════════════════════════════════════════
+// SOUND ENGINE  (Web Audio API — zero dependencies)
+// ═══════════════════════════════════════════════════════════════
+
+const SFX = (() => {
+  let ctx = null;
+  let muted = false;
+
+  function getCtx() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+
+  // Core tone builder
+  function tone({ freq = 440, freq2, type = 'sine', gain = 0.18, attack = 0.005,
+                   decay = 0.08, sustain = 0.6, release = 0.18, duration = 0.25 } = {}) {
+    if (muted) return;
+    try {
+      const c = getCtx();
+      const osc = c.createOscillator();
+      const env = c.createGain();
+      osc.connect(env);
+      env.connect(c.destination);
+
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, c.currentTime);
+      if (freq2) osc.frequency.linearRampToValueAtTime(freq2, c.currentTime + duration);
+
+      env.gain.setValueAtTime(0, c.currentTime);
+      env.gain.linearRampToValueAtTime(gain, c.currentTime + attack);
+      env.gain.linearRampToValueAtTime(gain * sustain, c.currentTime + attack + decay);
+      env.gain.setValueAtTime(gain * sustain, c.currentTime + duration - release);
+      env.gain.linearRampToValueAtTime(0, c.currentTime + duration);
+
+      osc.start(c.currentTime);
+      osc.stop(c.currentTime + duration + 0.01);
+    } catch(e) {}
+  }
+
+  function chord(freqs, opts = {}) {
+    freqs.forEach((f, i) => setTimeout(() => tone({ freq: f, ...opts }), i * (opts.stagger || 0)));
+  }
+
+  // ── Public sounds ──
+
+  function correct() {
+    // Bright two-note ding: root + fifth
+    tone({ freq: 523.25, type: 'triangle', gain: 0.14, duration: 0.18, attack: 0.003, release: 0.12 });
+    setTimeout(() => tone({ freq: 783.99, type: 'triangle', gain: 0.12, duration: 0.22, attack: 0.003, release: 0.18 }), 80);
+  }
+
+  function wrong() {
+    // Low dull thud
+    tone({ freq: 220, freq2: 160, type: 'sawtooth', gain: 0.12, duration: 0.22, attack: 0.003, decay: 0.05, sustain: 0.3, release: 0.15 });
+  }
+
+  function match() {
+    // Satisfying pop + shimmer
+    tone({ freq: 660, type: 'sine', gain: 0.13, duration: 0.12, attack: 0.002, release: 0.1 });
+    setTimeout(() => tone({ freq: 880, type: 'sine', gain: 0.09, duration: 0.15, attack: 0.002, release: 0.13 }), 55);
+  }
+
+  function matchWrong() {
+    // Short buzz
+    tone({ freq: 180, freq2: 140, type: 'square', gain: 0.08, duration: 0.15, attack: 0.002, release: 0.1 });
+  }
+
+  function roundComplete() {
+    // Rising arpeggio
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((f, i) => setTimeout(() => tone({ freq: f, type: 'triangle', gain: 0.11, duration: 0.18, attack: 0.003, release: 0.14 }), i * 90));
+  }
+
+  function nextQuestion() {
+    // Soft neutral tick
+    tone({ freq: 380, type: 'sine', gain: 0.06, duration: 0.08, attack: 0.002, release: 0.06 });
+  }
+
+  function quizWin() {
+    // Triumphant fanfare
+    const melody = [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5];
+    const delays =  [0,       120,    240,    380,    480,    560];
+    melody.forEach((f, i) => setTimeout(() => tone({ freq: f, type: 'triangle', gain: 0.13, duration: 0.22, attack: 0.003, release: 0.16 }), delays[i]));
+  }
+
+  function quizFail() {
+    // Descending sad tones
+    const notes = [392, 349.23, 311.13, 261.63];
+    notes.forEach((f, i) => setTimeout(() => tone({ freq: f, type: 'sine', gain: 0.1, duration: 0.28, attack: 0.005, release: 0.22 }), i * 130));
+  }
+
+  function flipCard() {
+    // Light whoosh-click
+    tone({ freq: 800, freq2: 400, type: 'sine', gain: 0.05, duration: 0.1, attack: 0.001, release: 0.09 });
+  }
+
+  function markKnown() {
+    // Soft star chime
+    tone({ freq: 1046.5, type: 'sine', gain: 0.08, duration: 0.15, attack: 0.003, release: 0.13 });
+  }
+
+  function navClick() {
+    tone({ freq: 440, type: 'sine', gain: 0.04, duration: 0.06, attack: 0.001, release: 0.05 });
+  }
+
+  function toggleMute() { muted = !muted; return muted; }
+  function isMuted() { return muted; }
+
+  return { correct, wrong, match, matchWrong, roundComplete, nextQuestion,
+           quizWin, quizFail, flipCard, markKnown, navClick, toggleMute, isMuted };
+})();
+
+// Expose globally
+window.SFX = SFX;
+
+window.toggleSfx = function() {
+  const muted = SFX.toggleMute();
+  const btn = document.getElementById('sfx-switch-btn');
+  if (btn) btn.classList.toggle('on', !muted);
+};
