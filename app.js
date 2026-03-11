@@ -76,9 +76,10 @@ let UNIQUE_IDS   = [];
 let QUIZ_HISTORY = [];
 let STARRED_IDS  = [];   // ⭐ starred question indices
 let NOTES        = {};   // { questionIndex: "note text" }
-let SPEED_MODE    = false;
-let SPEED_SECONDS = 30; // default 30s, configurable 10–90
-let SPEED_TIMER  = null;
+let SPEED_MODE         = false;
+let SPEED_SECONDS      = 30; // default 30s, configurable 10–90
+let SPEED_TIMER        = null;
+let SPEED_TICK_TIMEOUT = null;
 
 // ── Firestore bridge (set by Firebase module once ready) ──
 window._fbSaveUserData  = null;
@@ -440,6 +441,11 @@ window._questionsReady = false;
 window._authReady      = false;
 
 function showScreen(id) {
+  // Stop speed timer whenever leaving quiz screen (clearSpeedTimer defined later, use vars directly)
+  if (id !== 'quiz') {
+    if (SPEED_TIMER)        { clearTimeout(SPEED_TIMER);        SPEED_TIMER = null; }
+    if (SPEED_TICK_TIMEOUT) { clearTimeout(SPEED_TICK_TIMEOUT); SPEED_TICK_TIMEOUT = null; }
+  }
   ['loading','home','config','exam-config','streak-config','quiz','results','stats-page','about-page','saved-page','flashcards-page','glossary-game-page','match-game-page'].forEach(s => {
     const el = document.getElementById(s);
     if (el) el.classList.add('hidden');
@@ -1697,7 +1703,6 @@ async function saveNote() {
 }
 
 // ── Speed Mode Timer ──
-let SPEED_TICK_TIMEOUT = null; // separate handle for the tick scheduler
 
 async function startSpeedTimer() {
   clearSpeedTimer();
@@ -2915,15 +2920,15 @@ const SFX = (() => {
   function timerTick(progress) {
     // Soft sine chime: warm and mellow throughout, slightly higher near end
     const freq = 480 + Math.pow(progress, 1.5) * 160; // 480Hz → 640Hz
-    const gain = 0.032 + progress * 0.038;             // very quiet → gentle
+    const gain = 0.035 + progress * 0.042;             // very quiet → gentle (+10%)
     const duration = 0.13 + (1 - progress) * 0.08;    // longer/softer early, shorter near end
     tone({ freq, type: 'sine', gain, duration, attack: 0.01, decay: 0.06, sustain: 0.25, release: duration * 0.75 });
   }
 
   // Gentle end-of-time chime — two soft descending notes
   function timerAlarm() {
-    tone({ freq: 520, type: 'sine', gain: 0.09, duration: 0.24, attack: 0.012, release: 0.20 });
-    setTimeout(() => tone({ freq: 370, type: 'sine', gain: 0.06, duration: 0.32, attack: 0.012, release: 0.26 }), 200);
+    tone({ freq: 520, type: 'sine', gain: 0.099, duration: 0.24, attack: 0.012, release: 0.20 });
+    setTimeout(() => tone({ freq: 370, type: 'sine', gain: 0.066, duration: 0.32, attack: 0.012, release: 0.26 }), 200);
   }
 
   function toggleMute() { muted = !muted; return muted; }
