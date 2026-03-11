@@ -2925,15 +2925,15 @@ const SFX = (() => {
   function timerTick(progress) {
     // Soft sine chime: warm and mellow throughout, slightly higher near end
     const freq = 480 + Math.pow(progress, 1.5) * 160; // 480Hz → 640Hz
-    const gain = 0.035 + progress * 0.042;             // very quiet → gentle (+10%)
+    const gain = 0.040 + progress * 0.048;             // very quiet → gentle (+25%)
     const duration = 0.13 + (1 - progress) * 0.08;    // longer/softer early, shorter near end
     tone({ freq, type: 'sine', gain, duration, attack: 0.01, decay: 0.06, sustain: 0.25, release: duration * 0.75 });
   }
 
   // Gentle end-of-time chime — two soft descending notes
   function timerAlarm() {
-    tone({ freq: 520, type: 'sine', gain: 0.099, duration: 0.24, attack: 0.012, release: 0.20 });
-    setTimeout(() => tone({ freq: 370, type: 'sine', gain: 0.066, duration: 0.32, attack: 0.012, release: 0.26 }), 200);
+    tone({ freq: 520, type: 'sine', gain: 0.114, duration: 0.24, attack: 0.012, release: 0.20 });
+    setTimeout(() => tone({ freq: 370, type: 'sine', gain: 0.076, duration: 0.32, attack: 0.012, release: 0.26 }), 200);
   }
 
   function toggleMute() { muted = !muted; return muted; }
