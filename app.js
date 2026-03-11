@@ -603,7 +603,7 @@ function startMode(mode) {
   } else if (mode === 'exam') {
     showScreen('exam-config');
   } else if (mode === 'streak') {
-    startStreakMode();
+    showScreen('streak-config');
   } else if (mode === 'wrong') {
     const wqs = ACTIVE_Q.filter((q, i) => WRONG_IDS.includes(i));
     if (wqs.length === 0) {
@@ -1078,7 +1078,7 @@ async function submitMultiAnswer(q) {
     SESSION.answers[SESSION.idx] = { q, chosen: chosen[0], correct: false, chosenMulti: chosen };
     if (gIdx >= 0 && !WRONG_IDS.includes(gIdx)) WRONG_IDS.push(gIdx);
     SFX.wrong();
-    if (SESSION.mode === 'streak') { setTimeout(streakGameOver, 900); return; }
+    if (SESSION.mode === 'streak') { setTimeout(streakGameOver, 2500); return; }
   }
 
   await persistData();
@@ -1134,7 +1134,7 @@ async function selectOption(idx) {
       WRONG_IDS.push(globalIdx);
     }
     SFX.wrong();
-    if (SESSION.mode === 'streak') { setTimeout(streakGameOver, 900); return; }
+    if (SESSION.mode === 'streak') { setTimeout(streakGameOver, 2500); return; }
   }
 
   await persistData();
@@ -2596,11 +2596,37 @@ function saveStreakBest() {
   try { localStorage.setItem('istqb_streak_best', STREAK_BEST); } catch(e) {}
 }
 
-function startStreakMode() {
+function toggleStreakSources(checked) {
+  document.querySelectorAll('.streak-src-cb').forEach(cb => cb.checked = checked);
+}
+
+function getStreakSelectedSources() {
+  const allCb = document.getElementById('streak-src-all-he');
+  if (allCb && allCb.checked) return [];
+  return [...document.querySelectorAll('.streak-src-cb:checked')].map(cb => cb.value);
+}
+
+window.beginStreakMode = function() {
+  const sources = getStreakSelectedSources();
+  const klevel  = document.getElementById('streak-sel-klevel')?.value || 'all';
+
+  let pool = [...ACTIVE_Q];
+  if (sources.length > 0) pool = pool.filter(q => sources.includes(q.src));
+  if (klevel !== 'all')   pool = pool.filter(q => q.k == klevel || q.k === klevel);
+
+  const he = CURRENT_LANG === 'he';
+  if (pool.length === 0) {
+    alert(he ? 'אין שאלות עבור הסינון שנבחר.' : 'No questions match the selected filters.');
+    return;
+  }
+  startStreakMode(pool);
+};
+
+function startStreakMode(pool) {
   STREAK_CURRENT = 0;
-  const pool = shuffle([...ACTIVE_Q]);
+  if (!pool) pool = [...ACTIVE_Q];
   SESSION.mode = 'streak';
-  runQuiz(pool);
+  runQuiz(shuffle(pool));
 
   // Show streak bar, hide normal score
   const streakBar = document.getElementById('streak-bar');
@@ -2653,9 +2679,9 @@ function streakGameOver() {
     updateStreakBestBadge();
   }
 
-  const overlay = document.getElementById('streak-gameover');
-  const finalEl = document.getElementById('streak-final');
-  const newBestEl = document.getElementById('streak-new-best');
+  const overlay      = document.getElementById('streak-gameover');
+  const finalEl      = document.getElementById('streak-final');
+  const newBestEl    = document.getElementById('streak-new-best');
   const prevBestLine = document.getElementById('streak-prev-best-line');
 
   if (finalEl)    finalEl.textContent = STREAK_CURRENT;
@@ -2665,15 +2691,37 @@ function streakGameOver() {
       ? `השיא הקודם שלך היה ${STREAK_BEST === STREAK_CURRENT ? 0 : STREAK_BEST}`
       : `השיא שלך: ${STREAK_BEST}`;
   }
-  if (overlay) overlay.classList.remove('hidden');
 
+  // Show the question that was answered wrong
+  const wrongAnswer = SESSION.answers[SESSION.idx];
+  const wrongSummary = document.getElementById('streak-wrong-summary');
+  if (wrongAnswer && wrongAnswer.q && wrongSummary) {
+    const q = wrongAnswer.q;
+    const he = CURRENT_LANG === 'he';
+    const letters = he ? ['א','ב','ג','ד','ה','ו'] : ['A','B','C','D','E','F'];
+    const correctArr = Array.isArray(q.ans) ? q.ans : [q.ans];
+    const correctText = correctArr.map(i => `${letters[i]}) ${q.opts[i]}`).join(' + ');
+    const chosenIdxs = wrongAnswer.chosenMulti || (wrongAnswer.chosen >= 0 ? [wrongAnswer.chosen] : []);
+    const chosenText = chosenIdxs.length > 0
+      ? chosenIdxs.map(i => `${letters[i]}) ${q.opts[i]}`).join(' + ')
+      : (he ? 'לא נבחר' : 'None');
+
+    document.getElementById('streak-wrong-q').textContent = q.q.length > 100 ? q.q.slice(0, 100) + '…' : q.q;
+    document.getElementById('streak-wrong-correct').textContent = `✓ ${he ? 'נכון' : 'Correct'}: ${correctText}`;
+    document.getElementById('streak-wrong-chosen').textContent  = `✗ ${he ? 'בחרת' : 'You chose'}: ${chosenText}`;
+    wrongSummary.classList.remove('hidden');
+  } else if (wrongSummary) {
+    wrongSummary.classList.add('hidden');
+  }
+
+  if (overlay) overlay.classList.remove('hidden');
   SFX.quizFail();
 }
 
 function streakRestart() {
   const overlay = document.getElementById('streak-gameover');
   if (overlay) overlay.classList.add('hidden');
-  startMode('streak');
+  showScreen('streak-config');
 }
 
 function streakQuit() {
