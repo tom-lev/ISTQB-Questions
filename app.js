@@ -555,7 +555,6 @@ function updateStatsPage() {
           <div class="hi-badge ${pass ? 'pass' : 'fail'}">${pass ? 'עבר' : 'נכשל'}</div>
         </div>`;
       }).join('');
-      }).join('');
     }
   }
 }
